@@ -11,9 +11,9 @@ type Server struct {
 }
 
 // function called to create service and configure it
-func NewServer(addr string, handler http.Handler) *Server {
+func NewServer(host, port string, handler http.Handler) *Server {
 	server := http.Server{
-		Addr:           addr,
+		Addr:           host + ":" + port,
 		Handler:        handler,
 		MaxHeaderBytes: 1 << 20, // 1 MB
 		ReadTimeout:    10 * time.Second,

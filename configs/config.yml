@@ -1,4 +1,6 @@
-port: "8000"
+adr: 
+  port: "8080"
+  host: "localhost"
 
 db:
     username: "root"

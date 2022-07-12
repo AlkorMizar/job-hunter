@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("error initializing configs: %s", err.Error())
 	}
 
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../../.env"); err != nil {
 		log.Fatalf("error loading env variables: %s", err.Error())
 	}
 
@@ -47,14 +47,14 @@ func main() {
 	repo := repository.NewRepository(db)
 	service := service.NewService(repo)
 	router := handler.NewHandler(service)
-	server := pkg.NewServer("localhost:8080", router.InitRoutes())
+	server := pkg.NewServer(viper.GetString("adr.host"), viper.GetString("adr.port"), router.InitRoutes())
 	if err := server.Run(); err != nil {
 		log.Fatalf("error ocured during run %s", err.Error())
 	}
 }
 
 func initConfig() error {
-	viper.AddConfigPath("configs")
+	viper.AddConfigPath("../../configs")
 	viper.SetConfigName("config")
 	return viper.ReadInConfig()
 }
