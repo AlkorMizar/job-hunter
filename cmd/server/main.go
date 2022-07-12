@@ -8,6 +8,8 @@ import (
 	"github.com/AlkorMizar/job-hunter/pkg/handler"
 	"github.com/AlkorMizar/job-hunter/pkg/repository"
 	"github.com/AlkorMizar/job-hunter/pkg/service"
+	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 // @title           Swagger Example API
@@ -23,12 +25,20 @@ import (
 //@name Set-Cookie
 
 func main() {
+	if err := initConfig(); err != nil {
+		log.Fatalf("error initializing configs: %s", err.Error())
+	}
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("error loading env variables: %s", err.Error())
+	}
+
 	db, err := repository.NewMySQLDB(repository.Config{
-		Host:     "localhost",
-		Port:     "3306",
-		Username: "root",
-		DBName:   "db",
-		Protocol: "tcp",
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		DBName:   viper.GetString("db.dbname"),
+		Protocol: viper.GetString("db.protocol"),
 		Password: os.Getenv("DB_PASSWORD"),
 	})
 	if err != nil {
@@ -41,4 +51,10 @@ func main() {
 	if err := server.Run(); err != nil {
 		log.Fatalf("error ocured during run %s", err.Error())
 	}
+}
+
+func initConfig() error {
+	viper.AddConfigPath("configs")
+	viper.SetConfigName("config")
+	return viper.ReadInConfig()
 }
