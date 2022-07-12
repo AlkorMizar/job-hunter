@@ -1,8 +1,10 @@
 package service
 
+import "github.com/AlkorMizar/job-hunter/pkg/repository"
+
 type Service struct {
 }
 
-func NewService() *Service {
-	return nil
+func NewService(repo *repository.Repository) *Service {
+	return &Service{}
 }
