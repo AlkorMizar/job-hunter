@@ -10,6 +10,6 @@ paths: {}
 securityDefinitions:
   ApiKeyAuth:
     in: header
-    name: Auth
+    name: access_token
     type: apiKey
 swagger: "2.0"

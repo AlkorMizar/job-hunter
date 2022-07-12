@@ -10,4 +10,4 @@ package main
 
 // @securityDefinitions.apikey ApiKeyAuth
 //@in header
-//@name Auth
+//@name access_token

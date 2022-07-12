@@ -20,7 +20,7 @@ const docTemplate = `{
     "securityDefinitions": {
         "ApiKeyAuth": {
             "type": "apiKey",
-            "name": "Auth",
+            "name": "access_token",
             "in": "header"
         }
     }
