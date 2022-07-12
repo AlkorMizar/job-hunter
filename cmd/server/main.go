@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/AlkorMizar/job-hunter/pkg"
+	"github.com/AlkorMizar/job-hunter/pkg/handlers"
 )
 
 // @title           Swagger Example API
@@ -16,10 +17,11 @@ import (
 
 // @securityDefinitions.apikey ApiKeyAuth
 //@in header
-//@name access_token
+//@name Set-Cookie
 
 func main() {
-	server := pkg.NewServer("localhost:5080")
+	router := handlers.InitRoutes()
+	server := pkg.NewServer("localhost:8080", router)
 	if err := server.Run(); err != nil {
 		log.Fatalf("error ocured during run %s", err.Error())
 	}
