@@ -18,7 +18,7 @@ type NewUser struct {
 // @Success      200  {array}   string
 // @Failure      400  {object}  string
 // @Failure      500  {object}  string
-// @Router       /reg [post]
+// @Router       /unauth/reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
 }
@@ -34,7 +34,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {object}  string
 // @Failure      404  {object}  string
 // @Failure      500  {object}  string
-// @Router       /auth [get]
+// @Router       /unauth/auth [get]
 func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 
 }
@@ -49,7 +49,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {object}  string
 // @Failure      404  {object}  string
 // @Failure      500  {object}  string
-// @Router       /out [get]
+// @Router       /auth/out [get]
 func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
 
 }

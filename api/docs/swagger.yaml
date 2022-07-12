@@ -24,7 +24,36 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /auth:
+  /auth/out:
+    get:
+      consumes:
+      - application/json
+      description: log out user, clear token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Log out
+      tags:
+      - auth
+  /unauth/auth:
     get:
       consumes:
       - application/json
@@ -70,36 +99,7 @@ paths:
       summary: Authorization
       tags:
       - auth
-  /out:
-    get:
-      consumes:
-      - application/json
-      description: log out user, clear token
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "404":
-          description: Not Found
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: Log out
-      tags:
-      - auth
-  /reg:
+  /unauth/reg:
     post:
       consumes:
       - application/json
