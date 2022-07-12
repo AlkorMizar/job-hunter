@@ -1,4 +1,21 @@
 basePath: /
+definitions:
+  handler.NewUser:
+    properties:
+      email:
+        type: string
+      login:
+        type: string
+      password:
+        type: string
+      passwordRep:
+        type: string
+    required:
+    - email
+    - login
+    - password
+    - passwordRep
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -6,7 +23,114 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Swagger Example API
   version: "1.0"
-paths: {}
+paths:
+  /auth:
+    get:
+      consumes:
+      - application/json
+      description: if user exists sets cookie with JWT token
+      parameters:
+      - description: unique email
+        format: email
+        in: body
+        maxLength: 40
+        name: email
+        required: true
+        schema:
+          type: string
+      - description: password
+        in: body
+        maxLength: 40
+        minLength: 5
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Authorization
+      tags:
+      - auth
+  /out:
+    get:
+      consumes:
+      - application/json
+      description: log out user, clear token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Log out
+      tags:
+      - auth
+  /reg:
+    post:
+      consumes:
+      - application/json
+      description: creates new user if unique login and email
+      parameters:
+      - description: Login, email, password
+        in: body
+        name: newUser
+        required: true
+        schema:
+          $ref: '#/definitions/handler.NewUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Registration
+      tags:
+      - auth
 securityDefinitions:
   ApiKeyAuth:
     in: header

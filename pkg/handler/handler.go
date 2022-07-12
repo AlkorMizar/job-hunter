@@ -25,7 +25,7 @@ func (h *Handler) InitRoutes() *mux.Router {
 	unauth.HandleFunc("/reg", h.register).Methods(http.MethodPost)
 	unauth.HandleFunc("/auth", h.authorize).Methods(http.MethodGet)
 	unauth.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), //The url pointing to API definition
+		httpSwagger.URL("http://localhost:8080/unauth/swagger/doc.json"), //The url pointing to API definition
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("none"),
 		httpSwagger.DomID("swagger-ui"),
