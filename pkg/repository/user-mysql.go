@@ -34,6 +34,10 @@ func (r *UserManagMysql) CreateUser(user User) error {
 
 	num, err := res.RowsAffected()
 
+	if err != nil {
+		return err
+	}
+
 	if num != 1 {
 		return fmt.Errorf("couldn't insert")
 	}
