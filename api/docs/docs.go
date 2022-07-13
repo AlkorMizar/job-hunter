@@ -18,7 +18,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/auth/out": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -64,7 +64,7 @@ const docTemplate = `{
             }
         },
         "/unauth/auth": {
-            "get": {
+            "post": {
                 "description": "if user exists sets cookie with JWT token",
                 "consumes": [
                     "application/json"
@@ -78,25 +78,12 @@ const docTemplate = `{
                 "summary": "Authorization",
                 "parameters": [
                     {
-                        "maxLength": 40,
-                        "format": "email",
-                        "description": "unique email",
-                        "name": "email",
+                        "description": "Email and password",
+                        "name": "authInfo",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "maxLength": 40,
-                        "minLength": 5,
-                        "description": "password",
-                        "name": "password",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handler.AuthInfo"
                         }
                     }
                 ],
@@ -182,6 +169,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handler.AuthInfo": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "handler.NewUser": {
             "type": "object",
             "required": [

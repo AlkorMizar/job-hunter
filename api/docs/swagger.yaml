@@ -1,5 +1,15 @@
 basePath: /
 definitions:
+  handler.AuthInfo:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
   handler.NewUser:
     properties:
       email:
@@ -25,7 +35,7 @@ info:
   version: "1.0"
 paths:
   /auth/out:
-    get:
+    post:
       consumes:
       - application/json
       description: log out user, clear token
@@ -54,27 +64,17 @@ paths:
       tags:
       - auth
   /unauth/auth:
-    get:
+    post:
       consumes:
       - application/json
       description: if user exists sets cookie with JWT token
       parameters:
-      - description: unique email
-        format: email
+      - description: Email and password
         in: body
-        maxLength: 40
-        name: email
+        name: authInfo
         required: true
         schema:
-          type: string
-      - description: password
-        in: body
-        maxLength: 40
-        minLength: 5
-        name: password
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/handler.AuthInfo'
       produces:
       - application/json
       responses:
