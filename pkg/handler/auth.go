@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
+	"github.com/go-playground/validator"
 )
 
 // @Summary      Registration
@@ -18,6 +19,9 @@ import (
 // @Failure      500  {object}  string
 // @Router       /unauth/reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
+
+	validate := validator.New()
+
 	decoder := json.NewDecoder(r.Body)
 	var newUser model.NewUser
 
@@ -25,6 +29,13 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "incorrect data format", http.StatusBadRequest)
+		return
+	}
+
+	err = validate.Struct(newUser)
+
+	if err != nil {
+		http.Error(w, "incorrect field", http.StatusBadRequest)
 		return
 	}
 
