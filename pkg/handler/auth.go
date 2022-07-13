@@ -60,6 +60,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  string
 // @Router       /unauth/auth [post]
 func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
+	validate := validator.New()
 	decoder := json.NewDecoder(r.Body)
 	var authInfo model.AuthInfo
 
@@ -67,6 +68,13 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "incorrect data format", http.StatusBadRequest)
+		return
+	}
+
+	err = validate.Struct(authInfo)
+
+	if err != nil {
+		http.Error(w, "incorrect field", http.StatusBadRequest)
 		return
 	}
 }
