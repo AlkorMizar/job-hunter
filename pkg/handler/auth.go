@@ -3,33 +3,23 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 )
-
-type NewUser struct {
-	Login     string `json:"login" binding:"required" minimum:"5" maximum:"40" validate:"required,min=3,max=40"`
-	Email     string `json:"email" binding:"required" maximum:"255" validate:"required,email"`
-	Password  string `json:"password" binding:"required"  minimum:"5" maximum:"40" validate:"required,eqfield=CPassword"`
-	CPassword string `json:"cPassword" binding:"required"  minimum:"5" maximum:"40" validate:"required,min=5,max=40"`
-}
-
-type AuthInfo struct {
-	Email    string `json:"email" binding:"required" maximum:"255" validate:"required,email"`
-	Password string `json:"password" binding:"required"  minimum:"5" maximum:"40" validate:"required,email,min=5,max=40"`
-}
 
 // @Summary      Registration
 // @Description  creates new user if unique login and email
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param   newUser      body     handler.NewUser true "Login, email, password"
+// @Param   newUser      body     model.NewUser true "Login, email, password"
 // @Success      200  {array}   string
 // @Failure      400  {object}  string
 // @Failure      500  {object}  string
 // @Router       /unauth/reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var newUser NewUser
+	var newUser model.NewUser
 
 	err := decoder.Decode(&newUser)
 
@@ -37,6 +27,14 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "incorrect data format", http.StatusBadRequest)
 		return
 	}
+
+	err = h.services.UserManagment.CreateUser(newUser)
+
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
 }
 
 // @Summary      Authorization
@@ -44,7 +42,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param   authInfo   body     handler.AuthInfo true "Email and password"
+// @Param   authInfo   body     model.AuthInfo true "Email and password"
 // @Success      200  {array}   string
 // @Failure      400  {object}  string
 // @Failure      404  {object}  string
@@ -52,7 +50,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Router       /unauth/auth [post]
 func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var authInfo AuthInfo
+	var authInfo model.AuthInfo
 
 	err := decoder.Decode(&authInfo)
 
