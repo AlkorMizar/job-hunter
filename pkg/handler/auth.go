@@ -1,12 +1,20 @@
 package handler
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 type NewUser struct {
-	Login       string `json:"login" binding:"required" minimum:"5" maximum:"40"`
-	Email       string `json:"email" binding:"required" maximum:"255"`
-	Password    string `json:"password" binding:"required"  minimum:"5" maximum:"40"`
-	PasswordRep string `json:"passwordRep" binding:"required"  minimum:"5" maximum:"40"`
+	Login     string `json:"login" binding:"required" minimum:"5" maximum:"40" validate:"required,min=3,max=40"`
+	Email     string `json:"email" binding:"required" maximum:"255" validate:"required,email"`
+	Password  string `json:"password" binding:"required"  minimum:"5" maximum:"40" validate:"required,eqfield=CPassword"`
+	CPassword string `json:"cPassword" binding:"required"  minimum:"5" maximum:"40" validate:"required,min=5,max=40"`
+}
+
+type AuthInfo struct {
+	Email    string `json:"email" binding:"required" maximum:"255" validate:"required,email"`
+	Password string `json:"password" binding:"required"  minimum:"5" maximum:"40" validate:"required,email,min=5,max=40"`
 }
 
 // @Summary      Registration
@@ -20,7 +28,15 @@ type NewUser struct {
 // @Failure      500  {object}  string
 // @Router       /unauth/reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var newUser NewUser
 
+	err := decoder.Decode(&newUser)
+
+	if err != nil {
+		http.Error(w, "incorrect data format", http.StatusBadRequest)
+		return
+	}
 }
 
 // @Summary      Authorization
@@ -28,15 +44,22 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param   email      body     string     true  "unique email"       Format(email) maxlength(40)
-// @Param   password     body     string     true  "password"       minlength(5)  maxlength(40)
+// @Param   authInfo   body     handler.AuthInfo true "Email and password"
 // @Success      200  {array}   string
 // @Failure      400  {object}  string
 // @Failure      404  {object}  string
 // @Failure      500  {object}  string
-// @Router       /unauth/auth [get]
+// @Router       /unauth/auth [post]
 func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var authInfo AuthInfo
 
+	err := decoder.Decode(&authInfo)
+
+	if err != nil {
+		http.Error(w, "incorrect data format", http.StatusBadRequest)
+		return
+	}
 }
 
 // @Summary      Log out
@@ -49,7 +72,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {object}  string
 // @Failure      404  {object}  string
 // @Failure      500  {object}  string
-// @Router       /auth/out [get]
+// @Router       /auth/out [post]
 func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
 
 }
