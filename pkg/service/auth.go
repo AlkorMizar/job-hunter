@@ -10,15 +10,17 @@ const (
 	bcryptCost = 8
 )
 
-type AuthService struct {
+type UserService struct {
 	repo repository.UserManagment
 }
 
-func NewAuthService() *AuthService {
-	return &AuthService{}
+func NewUserService(repo repository.UserManagment) *UserService {
+	return &UserService{
+		repo: repo,
+	}
 }
 
-func (s *AuthService) CreateUser(newUser model.NewUser) error {
+func (s *UserService) CreateUser(newUser model.NewUser) error {
 	pwd, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcryptCost)
 
 	if err != nil {

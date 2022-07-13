@@ -1,15 +1,20 @@
 package service
 
-import "github.com/AlkorMizar/job-hunter/pkg/repository"
+import (
+	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
+	"github.com/AlkorMizar/job-hunter/pkg/repository"
+)
 
-type Authorization interface {
-	CreateUser(user repository.User) error
+type UserManagment interface {
+	CreateUser(newUser model.NewUser) error
 }
 
 type Service struct {
-	Authorization
+	UserManagment
 }
 
 func NewService(repo *repository.Repository) *Service {
-	return &Service{}
+	return &Service{
+		UserManagment: NewUserService(repo.UserManagment),
+	}
 }
