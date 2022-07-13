@@ -28,11 +28,11 @@ func (r *UserManagMysql) CreateUser(user User) error {
 	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullName)"
 	res, err := r.db.NamedExec(query, user)
 
-	num, err := res.RowsAffected()
-
 	if err != nil {
 		return err
 	}
+
+	num, err := res.RowsAffected()
 
 	if num != 1 {
 		return fmt.Errorf("couldn't insert")
