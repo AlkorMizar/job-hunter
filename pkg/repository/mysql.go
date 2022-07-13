@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -27,6 +28,10 @@ func NewMySQLDB(cfg Config) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	db.SetConnMaxLifetime(time.Minute * 3)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
 
 	return db, nil
 }
