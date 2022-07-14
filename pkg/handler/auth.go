@@ -75,6 +75,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&authInfo)
 
 	if err != nil {
+		log.Print(err)
 		http.Error(w, "incorrect data format", http.StatusBadRequest)
 		return
 	}
@@ -82,6 +83,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	err = validate.Struct(authInfo)
 
 	if err != nil {
+		log.Print(err)
 		http.Error(w, "incorrect fields", http.StatusBadRequest)
 		return
 	}
