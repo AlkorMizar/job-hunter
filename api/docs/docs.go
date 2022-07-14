@@ -83,7 +83,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.AuthInfo"
+                            "$ref": "#/definitions/model.AuthInfo"
                         }
                     }
                 ],
@@ -138,7 +138,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.NewUser"
+                            "$ref": "#/definitions/model.NewUser"
                         }
                     }
                 ],
@@ -169,7 +169,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handler.AuthInfo": {
+        "model.AuthInfo": {
             "type": "object",
             "required": [
                 "email",
@@ -180,29 +180,35 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 40,
+                    "minLength": 5
                 }
             }
         },
-        "handler.NewUser": {
+        "model.NewUser": {
             "type": "object",
             "required": [
+                "cPassword",
                 "email",
                 "login",
-                "password",
-                "passwordRep"
+                "password"
             ],
             "properties": {
+                "cPassword": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "minLength": 5
+                },
                 "email": {
                     "type": "string"
                 },
                 "login": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 40,
+                    "minLength": 3
                 },
                 "password": {
-                    "type": "string"
-                },
-                "passwordRep": {
                     "type": "string"
                 }
             }

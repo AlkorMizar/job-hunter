@@ -1,30 +1,36 @@
 basePath: /
 definitions:
-  handler.AuthInfo:
+  model.AuthInfo:
     properties:
       email:
         type: string
       password:
+        maxLength: 40
+        minLength: 5
         type: string
     required:
     - email
     - password
     type: object
-  handler.NewUser:
+  model.NewUser:
     properties:
+      cPassword:
+        maxLength: 40
+        minLength: 5
+        type: string
       email:
         type: string
       login:
+        maxLength: 40
+        minLength: 3
         type: string
       password:
         type: string
-      passwordRep:
-        type: string
     required:
+    - cPassword
     - email
     - login
     - password
-    - passwordRep
     type: object
 host: localhost:8080
 info:
@@ -74,7 +80,7 @@ paths:
         name: authInfo
         required: true
         schema:
-          $ref: '#/definitions/handler.AuthInfo'
+          $ref: '#/definitions/model.AuthInfo'
       produces:
       - application/json
       responses:
@@ -110,7 +116,7 @@ paths:
         name: newUser
         required: true
         schema:
-          $ref: '#/definitions/handler.NewUser'
+          $ref: '#/definitions/model.NewUser'
       produces:
       - application/json
       responses:
