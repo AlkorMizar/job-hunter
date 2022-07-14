@@ -19,11 +19,6 @@ type UserService struct {
 	repo repository.UserManagment
 }
 
-type tokenClaims struct {
-	jwt.StandardClaims
-	UserId int `json:"user_id"`
-}
-
 func NewUserService(repo repository.UserManagment) *UserService {
 	return &UserService{
 		repo: repo,
@@ -48,24 +43,24 @@ func (s *UserService) CreateUser(newUser model.NewUser) error {
 }
 
 func (s *UserService) CreateToken(authInfo model.AuthInfo) (string, error) {
-	pwd, err := bcrypt.GenerateFromPassword([]byte(authInfo.Password), bcryptCost)
 
+	user, err := s.repo.GetUser(authInfo.Email)
 	if err != nil {
 		return "", err
 	}
 
-	user, err := s.repo.GetUser(authInfo.Email, pwd)
-	if err != nil {
+	if err = bcrypt.CompareHashAndPassword(user.Password, []byte(authInfo.Password)); err != nil {
 		return "", err
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
-			IssuedAt:  time.Now().Unix(),
-		},
-		user.Id,
-	})
+	// Create the Claims
+	claims := &jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+		Issuer:    "api_token",
+	}
 
-	return token.SignedString([]byte(signingKey))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString(signingKey)
 }
