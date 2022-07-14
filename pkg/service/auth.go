@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
@@ -75,4 +76,21 @@ func (s *UserService) CreateToken(authInfo model.AuthInfo) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(signingKey)
+}
+
+func (s *UserService) ParseToken(tokenStr string) (id int, roles map[string]struct{}, err error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return signingKey, nil
+	})
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims.UserId, claims.Roles, nil
+	} else {
+		return 0, nil, fmt.Errorf("invalid token")
+	}
+
 }

@@ -1,0 +1,12 @@
+post http://localhost:8080/unauth/auth
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "test1"
+}
+
+#########################################
+
+post http://localhost:8080/auth/out
+Cookie: 1 Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjExLCJyb2xlcyI6bnVsbCwiaXNzIjoiYXBpX3Rva2VuIiwiZXhwIjoxNjU3ODE1MDIxLCJpYXQiOjE2NTc4MTE0MjF9.H1tUOAeBJJygRn9Y50LTLgivkOtdv0YwkRlae4sbMdw; Max-Age=3600000000000; HttpOnly
