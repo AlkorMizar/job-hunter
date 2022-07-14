@@ -77,3 +77,38 @@ func (r *UserManagMysql) GetRoles(user User) (map[string]struct{}, error) {
 
 	return roles, err
 }
+
+func (r *UserManagMysql) SetRoles(user User) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`DELETE FROM user_has_role WHERE User_idUser=?`, user.Id)
+	if err != nil {
+		return err
+	}
+	for k, _ := range user.Roles {
+		res, err := tx.Exec(`
+		insert into user_has_role (User_idUser, Role_idRole)
+		select ?, idRole from role
+		where name = ?;`, user.Id, k)
+		if err != nil {
+			return err
+		}
+
+		num, err := res.RowsAffected()
+
+		if err != nil {
+			return err
+		}
+
+		if num != 1 {
+			return fmt.Errorf("couldn't insert")
+		}
+	}
+
+	defer tx.Commit()
+
+	return nil
+}
