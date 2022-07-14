@@ -4,6 +4,7 @@ import "github.com/jmoiron/sqlx"
 
 type UserManagment interface {
 	CreateUser(user User) error
+	GetUser(email string, password []byte) (User, error)
 }
 
 type Repository struct {

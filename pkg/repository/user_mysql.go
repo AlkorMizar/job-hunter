@@ -25,7 +25,7 @@ func NewUserManagMsql(db *sqlx.DB) *UserManagMysql {
 }
 
 func (r *UserManagMysql) CreateUser(user User) error {
-	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullName)"
+	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullname)"
 	res, err := r.db.NamedExec(query, user)
 
 	if err != nil {
@@ -43,4 +43,12 @@ func (r *UserManagMysql) CreateUser(user User) error {
 	}
 
 	return nil
+}
+
+func (r *UserManagMysql) GetUser(email string, password []byte) (User, error) {
+	var user User
+	query := "SELECT * FROM user WHERE email=? AND password=?"
+	err := r.db.Get(&user, query, email, password)
+
+	return user, err
 }
