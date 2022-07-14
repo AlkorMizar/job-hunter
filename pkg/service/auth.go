@@ -11,9 +11,16 @@ import (
 
 const (
 	bcryptCost = 8
-	signingKey = "qrkjk#4#%35FSFJlja#4353KSFjH"
 	tokenTTL   = 1 * time.Hour
 )
+
+var signingKey = []byte("dontforgettochange")
+
+type Claims struct {
+	UserId int                 `json:"userId"`
+	Roles  map[string]struct{} `json:"roles"`
+	jwt.RegisteredClaims
+}
 
 type UserService struct {
 	repo repository.UserManagment
@@ -54,12 +61,17 @@ func (s *UserService) CreateToken(authInfo model.AuthInfo) (string, error) {
 	}
 
 	// Create the Claims
-	claims := &jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		Issuer:    "api_token",
+	claims := &Claims{
+		UserId: user.Id,
+		Roles:  user.Roles,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    "api_token",
+		},
 	}
 
+	// Declare the token with the algorithm used for signing, and the claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(signingKey)

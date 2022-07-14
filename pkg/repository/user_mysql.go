@@ -8,13 +8,14 @@ import (
 )
 
 type User struct {
-	Id          int       `json:"-" db:"idUser"`
-	Login       string    `json:"login" db:"login"`
-	FullName    string    `json:"fullName" db:"fullName"`
-	Email       string    `json:"email" db:"email"`
-	Password    []byte    `json:"password" db:"password"`
-	DateCreated time.Time `json:"datecreated" db:"dateCreated"`
-	LastCheck   time.Time `json:"lastcheck" db:"lastCheck"`
+	Id          int                 `json:"-" db:"idUser"`
+	Login       string              `json:"login" db:"login"`
+	FullName    string              `json:"fullName" db:"fullName"`
+	Email       string              `json:"email" db:"email"`
+	Password    []byte              `json:"password" db:"password"`
+	DateCreated time.Time           `json:"datecreated" db:"dateCreated"`
+	LastCheck   time.Time           `json:"lastcheck" db:"lastCheck"`
+	Roles       map[string]struct{} `json:-`
 }
 
 type UserManagMysql struct {
