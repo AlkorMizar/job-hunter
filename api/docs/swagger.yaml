@@ -3,8 +3,10 @@ definitions:
   model.AuthInfo:
     properties:
       email:
+        default: test@test.com
         type: string
       password:
+        default: test1
         maxLength: 40
         minLength: 5
         type: string
@@ -15,22 +17,30 @@ definitions:
   model.NewUser:
     properties:
       cPassword:
+        default: test1
         maxLength: 40
         minLength: 5
         type: string
       email:
+        default: test@test.com
         type: string
       login:
+        default: test
         maxLength: 40
         minLength: 3
         type: string
       password:
+        default: test1
+        type: string
+      roles:
+        default: ROLE
         type: string
     required:
     - cPassword
     - email
     - login
     - password
+    - roles
     type: object
 host: localhost:8080
 info:
@@ -87,9 +97,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              type: string
-            type: array
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -123,9 +131,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              type: string
-            type: array
+            type: string
         "400":
           description: Bad Request
           schema:

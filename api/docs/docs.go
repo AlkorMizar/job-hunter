@@ -91,10 +91,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -146,10 +143,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -177,10 +171,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "test@test.com"
                 },
                 "password": {
                     "type": "string",
+                    "default": "test1",
                     "maxLength": 40,
                     "minLength": 5
                 }
@@ -192,24 +188,33 @@ const docTemplate = `{
                 "cPassword",
                 "email",
                 "login",
-                "password"
+                "password",
+                "roles"
             ],
             "properties": {
                 "cPassword": {
                     "type": "string",
+                    "default": "test1",
                     "maxLength": 40,
                     "minLength": 5
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "test@test.com"
                 },
                 "login": {
                     "type": "string",
+                    "default": "test",
                     "maxLength": 40,
                     "minLength": 3
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "test1"
+                },
+                "roles": {
+                    "type": "string",
+                    "default": "ROLE"
                 }
             }
         }
