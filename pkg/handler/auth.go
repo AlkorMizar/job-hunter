@@ -63,7 +63,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param   authInfo   body     model.AuthInfo true "Email and password"
 // @Success      200  {string}  string
-// @Failure      400  {string}  string
+// @Header       200  {string}  Set-Cookie  "Token"
 // @Failure      404  {string}  string
 // @Failure      500  {string}  string
 // @Router       /unauth/auth [post]

@@ -96,10 +96,10 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
+          headers:
+            Set-Cookie:
+              description: Token
+              type: string
           schema:
             type: string
         "404":
