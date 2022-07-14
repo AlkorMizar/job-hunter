@@ -23,17 +23,17 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-type UserService struct {
+type AuthService struct {
 	repo repository.UserManagment
 }
 
-func NewUserService(repo repository.UserManagment) *UserService {
-	return &UserService{
+func NewAuthService(repo repository.UserManagment) *AuthService {
+	return &AuthService{
 		repo: repo,
 	}
 }
 
-func (s *UserService) CreateUser(newUser model.NewUser) error {
+func (s *AuthService) CreateUser(newUser model.NewUser) error {
 	pwd, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcryptCost)
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (s *UserService) CreateUser(newUser model.NewUser) error {
 	return s.repo.CreateUser(user)
 }
 
-func (s *UserService) CreateToken(authInfo model.AuthInfo) (string, error) {
+func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
 
 	user, err := s.repo.GetUser(authInfo.Email)
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *UserService) CreateToken(authInfo model.AuthInfo) (string, error) {
 	return token.SignedString(signingKey)
 }
 
-func (s *UserService) ParseToken(tokenStr string) (id int, roles map[string]struct{}, err error) {
+func (s *AuthService) ParseToken(tokenStr string) (id int, roles map[string]struct{}, err error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return signingKey, nil
 	})

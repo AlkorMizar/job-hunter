@@ -21,7 +21,7 @@ func (h *Handler) authentication(next http.Handler) http.Handler {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		} else {
-			id, roles, err := h.services.UserManagment.ParseToken(token.Value)
+			id, roles, err := h.services.Authorization.ParseToken(token.Value)
 			if err != nil {
 				http.Error(w, "Forbidden, please authorize", http.StatusForbidden)
 				return

@@ -44,7 +44,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.services.UserManagment.CreateUser(newUser)
+	err = h.services.Authorization.CreateUser(newUser)
 
 	if err != nil {
 		log.Print(err)
@@ -88,7 +88,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.services.UserManagment.CreateToken(authInfo)
+	token, err := h.services.Authorization.CreateToken(authInfo)
 
 	if err != nil {
 		log.Print(err)

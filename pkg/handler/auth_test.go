@@ -96,7 +96,7 @@ func TestRegisterHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			services := &service.Service{UserManagment: &userManagServiceMock{}}
+			services := &service.Service{Authorization: &userManagServiceMock{}}
 			handler := Handler{services}
 			body, err := json.Marshal(test.newUser)
 
@@ -174,7 +174,7 @@ func TestAuthHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			services := &service.Service{UserManagment: &userManagServiceMock{
+			services := &service.Service{Authorization: &userManagServiceMock{
 				mockCreateToken: test.mock,
 			}}
 			handler := Handler{services}
@@ -219,7 +219,7 @@ func TestOutHandler(t *testing.T) {
 		MaxAge:   int(1 * time.Hour),
 	}
 
-	services := &service.Service{UserManagment: &userManagServiceMock{}}
+	services := &service.Service{Authorization: &userManagServiceMock{}}
 	handler := Handler{services}
 
 	req, err := http.NewRequest("POST", "/auth/out", nil)
