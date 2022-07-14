@@ -23,7 +23,7 @@ func (h *Handler) InitRoutes() *mux.Router {
 	auth := r.PathPrefix("/auth").Subrouter()
 
 	unauth.HandleFunc("/reg", h.register).Methods(http.MethodPost)
-	unauth.HandleFunc("/auth", h.authorize).Methods(http.MethodGet)
+	unauth.HandleFunc("/auth", h.authorize).Methods(http.MethodPost)
 	unauth.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/unauth/swagger/doc.json"), //The url pointing to API definition
 		httpSwagger.DeepLinking(true),
@@ -32,7 +32,7 @@ func (h *Handler) InitRoutes() *mux.Router {
 	)).Methods(http.MethodGet)
 
 	auth.Use(authentication)
-	auth.HandleFunc("/out", h.logOut).Methods(http.MethodGet)
+	auth.HandleFunc("/out", h.logOut).Methods(http.MethodPost)
 
 	return r
 }
