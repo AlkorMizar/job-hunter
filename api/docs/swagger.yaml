@@ -55,19 +55,17 @@ paths:
       consumes:
       - application/json
       description: log out user, clear token
+      parameters:
+      - description: 'tokien '
+        in: header
+        name: Cookie
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "404":
-          description: Not Found
           schema:
             type: string
         "500":
@@ -99,7 +97,7 @@ paths:
           headers:
             Set-Cookie:
               description: Token
-              type: string
+              type: object
           schema:
             type: string
         "404":

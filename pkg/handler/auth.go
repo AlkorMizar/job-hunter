@@ -63,7 +63,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param   authInfo   body     model.AuthInfo true "Email and password"
 // @Success      200  {string}  string
-// @Header       200  {string}  Set-Cookie  "Token"
+// @Header       200  {object}  Set-Cookie  "Token"
 // @Failure      404  {string}  string
 // @Failure      500  {string}  string
 // @Router       /unauth/auth [post]
@@ -115,6 +115,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 // @Security ApiKeyAuth
 // @Accept       json
 // @Produce      json
+// @Param   Cookie   header     string true "tokien "
 // @Success 200  {string}  string
 // @Failure 500  {string}  string
 // @Router       /auth/out [post]

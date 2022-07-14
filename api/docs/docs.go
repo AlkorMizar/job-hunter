@@ -35,21 +35,18 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Log out",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "tokien ",
+                        "name": "Cookie",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "type": "string"
                         }
@@ -95,7 +92,7 @@ const docTemplate = `{
                         },
                         "headers": {
                             "Set-Cookie": {
-                                "type": "string",
+                                "type": "object",
                                 "description": "Token"
                             }
                         }
