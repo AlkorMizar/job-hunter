@@ -2,16 +2,19 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type User struct {
-	Id       int    `json:"-" db:"id"`
-	Login    string `json:"login" binding:"required"`
-	FullName string `json:"fullName" binding:"required"`
-	Email    string `json:"email" binding:"required"`
-	Password []byte `json:"password" binding:"required"`
+	Id          int       `json:"-" db:"idUser"`
+	Login       string    `json:"login" db:"login"`
+	FullName    string    `json:"fullName" db:"fullName"`
+	Email       string    `json:"email" db:"email"`
+	Password    []byte    `json:"password" db:"password"`
+	DateCreated time.Time `json:"datecreated" db:"dateCreated"`
+	LastCheck   time.Time `json:"lastcheck" db:"lastCheck"`
 }
 
 type UserManagMysql struct {
@@ -25,7 +28,7 @@ func NewUserManagMsql(db *sqlx.DB) *UserManagMysql {
 }
 
 func (r *UserManagMysql) CreateUser(user User) error {
-	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullname)"
+	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullName)"
 	res, err := r.db.NamedExec(query, user)
 
 	if err != nil {
@@ -45,10 +48,9 @@ func (r *UserManagMysql) CreateUser(user User) error {
 	return nil
 }
 
-func (r *UserManagMysql) GetUser(email string, password []byte) (User, error) {
+func (r *UserManagMysql) GetUser(email string) (User, error) {
 	var user User
-	query := "SELECT * FROM user WHERE email=? AND password=?"
-	err := r.db.Get(&user, query, email, password)
-
+	query := "SELECT * FROM user WHERE email=?"
+	err := r.db.Get(&user, query, email)
 	return user, err
 }
