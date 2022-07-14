@@ -8,7 +8,7 @@ import (
 )
 
 type User struct {
-	Id          int                 `json:"-" db:"idUser"`
+	Id          int                 `json:"idUser" db:"idUser"`
 	Login       string              `json:"login" db:"login"`
 	FullName    string              `json:"fullName" db:"fullName"`
 	Email       string              `json:"email" db:"email"`
@@ -16,6 +16,11 @@ type User struct {
 	DateCreated time.Time           `json:"datecreated" db:"dateCreated"`
 	LastCheck   time.Time           `json:"lastcheck" db:"lastCheck"`
 	Roles       map[string]struct{} `json:-`
+}
+
+type Role struct {
+	Id   int    `json:"idRole" db:"idRole"`
+	Name string `json:"name" db:"name"`
 }
 
 type UserManagMysql struct {
@@ -54,4 +59,21 @@ func (r *UserManagMysql) GetUser(email string) (User, error) {
 	query := "SELECT * FROM user WHERE email=?"
 	err := r.db.Get(&user, query, email)
 	return user, err
+}
+
+func (r *UserManagMysql) GetRoles(user User) (map[string]struct{}, error) {
+	roles := make(map[string]struct{})
+	rolesArr := []Role{}
+	query := "SELECT role.name from role JOIN user_has_role ON User_idUser=? AND Role_idRole=idRole; "
+	err := r.db.Select(&rolesArr, query, user.Id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range rolesArr {
+		roles[v.Name] = struct{}{}
+	}
+
+	return roles, err
 }
