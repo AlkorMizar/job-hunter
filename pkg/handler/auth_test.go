@@ -125,3 +125,7 @@ func (s *userManagServiceMock) CreateUser(newUser model.NewUser) error {
 	}
 	return nil
 }
+
+func (s *userManagServiceMock) CreateToken(authInfo model.AuthInfo) (string, error) {
+	return "", nil
+}
