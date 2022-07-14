@@ -2,7 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"io"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/go-playground/validator"
@@ -14,9 +17,9 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param   newUser      body     model.NewUser true "Login, email, password"
-// @Success      200  {array}   string
-// @Failure      400  {object}  string
-// @Failure      500  {object}  string
+// @Success      200  {string}  string
+// @Failure      400  {string}  string
+// @Failure      500  {string}  string
 // @Router       /unauth/reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
@@ -28,6 +31,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&newUser)
 
 	if err != nil {
+		log.Print(err)
 		http.Error(w, "incorrect data format", http.StatusBadRequest)
 		return
 	}
@@ -35,6 +39,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	err = validate.Struct(newUser)
 
 	if err != nil {
+		log.Print(err)
 		http.Error(w, "incorrect field", http.StatusBadRequest)
 		return
 	}
@@ -42,10 +47,13 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	err = h.services.UserManagment.CreateUser(newUser)
 
 	if err != nil {
+		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, `user created`)
 }
 
 // @Summary      Authorization
@@ -77,6 +85,25 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "incorrect field", http.StatusBadRequest)
 		return
 	}
+
+	token, err := h.services.UserManagment.CreateToken(authInfo)
+
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	tokenCookie := &http.Cookie{
+		Name:     "Token",
+		Value:    token,
+		HttpOnly: true,
+		MaxAge:   int(1 * time.Hour),
+	}
+
+	w.WriteHeader(http.StatusOK)
+	http.SetCookie(w, tokenCookie)
+	io.WriteString(w, `user created`)
 }
 
 // @Summary      Log out
