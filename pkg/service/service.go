@@ -7,6 +7,7 @@ import (
 
 type UserManagment interface {
 	CreateUser(newUser model.NewUser) error
+	CreateToken(authInfo model.AuthInfo) (string, error)
 }
 
 type Service struct {
