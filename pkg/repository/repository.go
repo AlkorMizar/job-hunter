@@ -6,6 +6,7 @@ type UserManagment interface {
 	CreateUser(user User) error
 	GetUser(email string) (User, error)
 	GetRoles(user User) (map[string]struct{}, error)
+	SetRoles(user User) error
 }
 
 type Repository struct {

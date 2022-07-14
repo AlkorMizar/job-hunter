@@ -41,11 +41,19 @@ func (s *AuthService) CreateUser(newUser model.NewUser) error {
 		return err
 	}
 
+	/////////////////////////////////////////
+	roles := make(map[string]struct{})
+	for _, v := range newUser.Roles {
+		roles[v] = struct{}{}
+	}
+	////////////////////////////////////////
+
 	user := repository.User{
 		Login:    newUser.Login,
 		Password: pwd,
 		Email:    newUser.Email,
 		FullName: newUser.Login,
+		Roles:    roles,
 	}
 
 	return s.repo.CreateUser(user)

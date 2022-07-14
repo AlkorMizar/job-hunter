@@ -9,4 +9,4 @@ Content-Type: application/json
 #########################################
 
 post http://localhost:8080/auth/out
-Cookie: Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjExLCJyb2xlcyI6bnVsbCwiaXNzIjoiYXBpX3Rva2VuIiwiZXhwIjoxNjU3ODM4MTY1LCJpYXQiOjE2NTc4MzQ1NjV9.bi3StLbsF7ygUM0mj-I9M4ZYR4q79_J62_ACb1NfIjo; Max-Age=3600000000000; HttpOnly
+Cookie: Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInJvbGVzIjp7ImFwcGxpY2FudCI6e30sInJlY3J1aXRlciI6e319LCJpc3MiOiJhcGlfdG9rZW4iLCJleHAiOjE2NTc4NDE5MDUsImlhdCI6MTY1NzgzODMwNX0.SVwLHuTh8aEiVrugJrK8Qt7VKjqs4AEY6h0NRAfW_Is; Max-Age=3600000000000; HttpOnly
