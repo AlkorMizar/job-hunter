@@ -40,7 +40,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "incorrect field", http.StatusBadRequest)
+		http.Error(w, "incorrect fields", http.StatusBadRequest)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	err = validate.Struct(authInfo)
 
 	if err != nil {
-		http.Error(w, "incorrect field", http.StatusBadRequest)
+		http.Error(w, "incorrect fields", http.StatusBadRequest)
 		return
 	}
 
