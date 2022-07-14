@@ -19,14 +19,15 @@ func (h *Handler) authentication(next http.Handler) http.Handler {
 		token, err := r.Cookie("Token")
 		if err != nil {
 			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
 		} else {
 			id, roles, err := h.services.UserManagment.ParseToken(token.Value)
 			if err != nil {
 				http.Error(w, "Forbidden, please authorize", http.StatusForbidden)
+				return
 			}
 			ctx := context.WithValue(r.Context(), keyUserInfo, &userInfo{id, roles})
 			next.ServeHTTP(w, r.WithContext(ctx))
-			next.ServeHTTP(w, r)
 		}
 	})
 }
