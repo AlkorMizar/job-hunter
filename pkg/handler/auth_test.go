@@ -30,6 +30,7 @@ func TestRegisterHandler(t *testing.T) {
 				Email:     "root@root.com",
 				Password:  "root1",
 				CPassword: "root1",
+				Roles:     "role",
 			},
 			http.StatusOK,
 		},
@@ -40,6 +41,7 @@ func TestRegisterHandler(t *testing.T) {
 				Email:     "root@root.com",
 				Password:  "root1",
 				CPassword: "root1",
+				Roles:     "role",
 			},
 			http.StatusBadRequest,
 		},
@@ -50,6 +52,7 @@ func TestRegisterHandler(t *testing.T) {
 				Email:     "root@root",
 				Password:  "root1",
 				CPassword: "root1",
+				Roles:     "role",
 			},
 			http.StatusBadRequest,
 		},
@@ -60,6 +63,7 @@ func TestRegisterHandler(t *testing.T) {
 				Email:     "root@root.com",
 				Password:  "root",
 				CPassword: "root",
+				Roles:     "role",
 			},
 			http.StatusBadRequest,
 		},
@@ -70,6 +74,7 @@ func TestRegisterHandler(t *testing.T) {
 				Email:     "root@root.com",
 				Password:  "root1",
 				CPassword: "root2",
+				Roles:     "role",
 			},
 			http.StatusBadRequest,
 		},
@@ -80,6 +85,7 @@ func TestRegisterHandler(t *testing.T) {
 				Email:     "root@root.com",
 				Password:  "root1",
 				CPassword: "root1",
+				Roles:     "role",
 			},
 			http.StatusInternalServerError,
 		},
@@ -116,7 +122,94 @@ func TestRegisterHandler(t *testing.T) {
 	}
 }
 
+func TestAuthHandler(t *testing.T) {
+
+	tests := []struct {
+		name               string
+		authInfo           model.AuthInfo
+		mock               func(model.AuthInfo) (string, error)
+		expectedStatusCode int
+		expectedCookie     string
+	}{
+		{
+			"ok",
+			model.AuthInfo{
+				Email:    "root@root.com",
+				Password: "root1",
+			},
+			func(ai model.AuthInfo) (string, error) {
+				return "token", nil
+			},
+			http.StatusOK,
+			"Token=token; Max-Age=3600000000000; HttpOnly",
+		},
+		{
+			"incorrect data",
+			model.AuthInfo{
+				Email:    "root@.com",
+				Password: "root",
+			},
+			func(ai model.AuthInfo) (string, error) {
+				return "", nil
+			},
+			http.StatusBadRequest,
+			"",
+		},
+		{
+			"user not exists",
+			model.AuthInfo{
+				Email:    "root@root.com",
+				Password: "root1",
+			},
+			func(ai model.AuthInfo) (string, error) {
+				return "", fmt.Errorf("internal error")
+			},
+			http.StatusInternalServerError,
+			"",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			services := &service.Service{UserManagment: &userManagServiceMock{
+				mockCreateToken: test.mock,
+			}}
+			handler := Handler{services}
+			body, err := json.Marshal(test.authInfo)
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req, err := http.NewRequest("POST", "/unauth/auth", bytes.NewBuffer(body))
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rr := httptest.NewRecorder()
+			reg := http.HandlerFunc(handler.authorize)
+
+			reg.ServeHTTP(rr, req)
+
+			status := rr.Code
+
+			if status != test.expectedStatusCode {
+				t.Errorf("%s:handler returned wrong status code: got %v want %v",
+					test.name, status, test.expectedStatusCode)
+			}
+
+			if cookie := rr.Header().Get("Set-Cookie"); cookie != test.expectedCookie {
+				t.Errorf("%s:handler returned wrong token : got %v want %v",
+					test.name, cookie, test.expectedCookie)
+			}
+		})
+	}
+}
+
 type userManagServiceMock struct {
+	mockCreateToken func(model.AuthInfo) (string, error)
 }
 
 func (s *userManagServiceMock) CreateUser(newUser model.NewUser) error {
@@ -127,5 +220,5 @@ func (s *userManagServiceMock) CreateUser(newUser model.NewUser) error {
 }
 
 func (s *userManagServiceMock) CreateToken(authInfo model.AuthInfo) (string, error) {
-	return "", nil
+	return s.mockCreateToken(authInfo)
 }
