@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/AlkorMizar/job-hunter/pkg/service"
@@ -14,6 +15,7 @@ import (
 
 const (
 	notUniqueLogin = "notUniqueLogin"
+	expectedCookie = "Token=token; Max-Age=3600000000000; HttpOnly"
 )
 
 func TestRegisterHandler(t *testing.T) {
@@ -141,7 +143,7 @@ func TestAuthHandler(t *testing.T) {
 				return "token", nil
 			},
 			http.StatusOK,
-			"Token=token; Max-Age=3600000000000; HttpOnly",
+			expectedCookie,
 		},
 		{
 			"incorrect data",
@@ -208,6 +210,47 @@ func TestAuthHandler(t *testing.T) {
 	}
 }
 
+func TestOutHandler(t *testing.T) {
+
+	tokenCookie := &http.Cookie{
+		Name:     "Token",
+		Value:    "token",
+		HttpOnly: true,
+		MaxAge:   int(1 * time.Hour),
+	}
+
+	services := &service.Service{UserManagment: &userManagServiceMock{}}
+	handler := Handler{services}
+
+	req, err := http.NewRequest("POST", "/auth/out", nil)
+	req.AddCookie(tokenCookie)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	reg := http.HandlerFunc(handler.logOut)
+
+	reg.ServeHTTP(rr, req)
+
+	status := rr.Code
+
+	if status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	resp := rr.Result()
+	resp.Cookies()
+	expectedCookie := "Token=; HttpOnly"
+
+	if cookie := rr.Header().Get("Set-Cookie"); cookie != expectedCookie {
+		t.Errorf("handler returned wrong token : got %v want %v",
+			cookie, expectedCookie)
+	}
+}
+
 type userManagServiceMock struct {
 	mockCreateToken func(model.AuthInfo) (string, error)
 }
@@ -221,4 +264,7 @@ func (s *userManagServiceMock) CreateUser(newUser model.NewUser) error {
 
 func (s *userManagServiceMock) CreateToken(authInfo model.AuthInfo) (string, error) {
 	return s.mockCreateToken(authInfo)
+}
+func (s *userManagServiceMock) ParseToken(tokenStr string) (int, map[string]struct{}, error) {
+	return 0, nil, nil
 }
