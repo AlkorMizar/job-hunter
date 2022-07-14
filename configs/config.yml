@@ -8,3 +8,4 @@ db:
     port: "3306"
     dbname: "jobhunter"
     protocol: "tcp"
+    options: "parseTime=true"

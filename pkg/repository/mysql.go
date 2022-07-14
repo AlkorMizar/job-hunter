@@ -15,11 +15,12 @@ type Config struct {
 	Password string
 	DBName   string
 	Protocol string
+	Options  string
 }
 
 func NewMySQLDB(cfg Config) (*sqlx.DB, error) {
-	db, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@%s(%s:%s)/%s",
-		cfg.Username, cfg.Password, cfg.Protocol, cfg.Host, cfg.Port, cfg.DBName))
+	db, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@%s(%s:%s)/%s?%s",
+		cfg.Username, cfg.Password, cfg.Protocol, cfg.Host, cfg.Port, cfg.DBName, cfg.Options))
 	if err != nil {
 		return nil, err
 	}

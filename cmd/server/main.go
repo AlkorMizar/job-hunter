@@ -39,6 +39,7 @@ func main() {
 		Username: viper.GetString("db.username"),
 		DBName:   viper.GetString("db.dbname"),
 		Protocol: viper.GetString("db.protocol"),
+		Options:  viper.GetString("db.options"),
 		Password: os.Getenv("DB_PASSWORD"),
 	})
 	if err != nil {
