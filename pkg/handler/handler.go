@@ -31,7 +31,7 @@ func (h *Handler) InitRoutes() *mux.Router {
 		httpSwagger.DomID("swagger-ui"),
 	)).Methods(http.MethodGet)
 
-	auth.Use(authentication)
+	auth.Use(h.authentication)
 	auth.HandleFunc("/out", h.logOut).Methods(http.MethodPost)
 
 	return r
