@@ -62,10 +62,10 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param   authInfo   body     model.AuthInfo true "Email and password"
-// @Success      200  {array}   string
-// @Failure      400  {object}  string
-// @Failure      404  {object}  string
-// @Failure      500  {object}  string
+// @Success      200  {string}  string
+// @Failure      400  {string}  string
+// @Failure      404  {string}  string
+// @Failure      500  {string}  string
 // @Router       /unauth/auth [post]
 func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
@@ -103,7 +103,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	http.SetCookie(w, tokenCookie)
-	io.WriteString(w, `user created`)
+	io.WriteString(w, `authorized`)
 }
 
 // @Summary      Log out
@@ -112,10 +112,10 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 // @Security ApiKeyAuth
 // @Accept       json
 // @Produce      json
-// @Success 200 {object} string
-// @Failure      400  {object}  string
-// @Failure      404  {object}  string
-// @Failure      500  {object}  string
+// @Success 200  {string}  string
+// @Failure 400  {string}  string
+// @Failure 404  {string}  string
+// @Failure 500  {string}  string
 // @Router       /auth/out [post]
 func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
 
