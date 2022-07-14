@@ -106,6 +106,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	http.SetCookie(w, tokenCookie)
 	io.WriteString(w, `authorized`)
+	log.Print(tokenCookie)
 }
 
 // @Summary      Log out
@@ -115,10 +116,18 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Success 200  {string}  string
-// @Failure 400  {string}  string
-// @Failure 404  {string}  string
 // @Failure 500  {string}  string
 // @Router       /auth/out [post]
 func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
 
+	tokenCookie := &http.Cookie{
+		Name:     "Token",
+		Value:    "",
+		HttpOnly: true,
+		MaxAge:   0,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	http.SetCookie(w, tokenCookie)
+	io.WriteString(w, `log out`)
 }
