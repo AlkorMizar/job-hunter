@@ -19,20 +19,18 @@ func NewHandler(serv *service.Service) *Handler {
 
 func (h *Handler) InitRoutes() *mux.Router {
 	r := mux.NewRouter()
-	unauth := r.PathPrefix("/unauth").Subrouter()
-	auth := r.PathPrefix("/auth").Subrouter()
+	unauth := r.PathPrefix("/").Subrouter()
+	auth := r.PathPrefix("/").Subrouter()
 
 	unauth.HandleFunc("/reg", h.register).Methods(http.MethodPost)
 	unauth.HandleFunc("/auth", h.authorize).Methods(http.MethodPost)
 	unauth.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/unauth/swagger/doc.json"),
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("none"),
 		httpSwagger.DomID("swagger-ui"),
 	)).Methods(http.MethodGet)
 
 	auth.Use(h.authentication)
-	auth.HandleFunc("/out", h.logOut).Methods(http.MethodPost)
-
 	return r
 }
