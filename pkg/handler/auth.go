@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/go-playground/validator"
@@ -64,9 +63,8 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param   authInfo   body     model.AuthInfo true "Email and password"
-// @Success      200  {string}  string
-// @Header       200  {object}  Set-Cookie  "Token"
+// @Param        authInfo   body     model.AuthInfo true "Email and password"
+// @Success      200  {object}  model.JSONResult{data=model.Token} "Message and token"
 // @Failure      404  {string}  string
 // @Failure      500  {string}  string
 // @Router       /unauth/auth [post]
@@ -104,19 +102,14 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenCookie := &http.Cookie{
-		Name:     "Token",
-		Value:    token,
-		HttpOnly: true,
-		MaxAge:   int(1 * time.Hour),
+	body := model.JSONResult{
+		Message: "Succesfully authorized",
+		Data:    model.Token{Token: token},
 	}
 
 	w.WriteHeader(http.StatusOK)
-	http.SetCookie(w, tokenCookie)
-
-	_, _ = io.WriteString(w, `authorized`)
-
-	log.Print(tokenCookie)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(body)
 }
 
 // @Summary      Log out
@@ -125,7 +118,6 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 // @Security ApiKeyAuth
 // @Accept       json
 // @Produce      json
-// @Param   Cookie   header     string true "tokien "
 // @Success 200  {string}  string
 // @Failure 500  {string}  string
 // @Router       /auth/out [post]

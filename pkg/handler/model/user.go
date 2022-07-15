@@ -12,3 +12,12 @@ type AuthInfo struct {
 	Email    string `json:"email" binding:"required" maximum:"255" default:"test@test.com" validate:"required,email"`
 	Password string `json:"password" binding:"required"  minimum:"5" maximum:"40" default:"test1" validate:"required,min=5,max=40"`
 }
+
+type JSONResult struct {
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
+type Token struct {
+	Token string `json:"token"`
+}
