@@ -23,7 +23,7 @@ func (h *Handler) InitRoutes() *mux.Router {
 	auth := r.PathPrefix("/").Subrouter()
 
 	unauth.HandleFunc("/reg", h.register).Methods(http.MethodPost)
-	unauth.HandleFunc("/auth", h.authorize).Methods(http.MethodPost)
+	unauth.HandleFunc("/auth", h.authenticate).Methods(http.MethodPost)
 	unauth.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
 		httpSwagger.DeepLinking(true),

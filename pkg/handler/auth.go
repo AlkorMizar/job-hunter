@@ -11,7 +11,7 @@ import (
 )
 
 // @Summary      Registration
-// @Description  creates new user if unique login and email
+// @Description  Creates new user if unique login and email
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -58,8 +58,8 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	_, _ = io.WriteString(w, `user created`)
 }
 
-// @Summary      Authorization
-// @Description  if user exists sets cookie with JWT token
+// @Summary      Authentication
+// @Description  If user exists returns JWT token
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -68,7 +68,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Failure      404  {object}  model.JSONResult
 // @Failure      500  {object}  model.JSONResult
 // @Router       /auth [post]
-func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
 
 	decoder := json.NewDecoder(r.Body)

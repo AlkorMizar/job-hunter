@@ -66,7 +66,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: if user exists sets cookie with JWT token
+      description: If user exists returns JWT token
       parameters:
       - description: Email and password
         in: body
@@ -94,14 +94,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/model.JSONResult'
-      summary: Authorization
+      summary: Authentication
       tags:
       - auth
   /reg:
     post:
       consumes:
       - application/json
-      description: creates new user if unique login and email
+      description: Creates new user if unique login and email
       parameters:
       - description: Login, email, password
         in: body
