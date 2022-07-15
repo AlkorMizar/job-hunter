@@ -10,11 +10,12 @@ import (
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/AlkorMizar/job-hunter/pkg/service"
+	"github.com/mitchellh/mapstructure"
 )
 
 const (
 	notUniqueLogin = "notUniqueLogin"
-	expectedCookie = "Token=token; Max-Age=3600000000000; HttpOnly"
+	expectedToken  = "token"
 )
 
 func TestRegisterHandler(t *testing.T) {
@@ -101,7 +102,7 @@ func TestRegisterHandler(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			req, err := http.NewRequest("POST", "/unauth/reg", bytes.NewBuffer(body))
+			req, err := http.NewRequest("POST", "/reg", bytes.NewBuffer(body))
 
 			if err != nil {
 				t.Fatal(err)
@@ -127,31 +128,31 @@ func TestAuthHandler(t *testing.T) {
 		authInfo           model.AuthInfo
 		mock               func(model.AuthInfo) (string, error)
 		expectedStatusCode int
-		expectedCookie     string
+		expectedToken      string
 	}{
-		{
-			"ok",
-			model.AuthInfo{
-				Email:    "root@root.com",
-				Password: "root1",
-			},
-			func(ai model.AuthInfo) (string, error) {
-				return "token", nil
-			},
-			http.StatusOK,
-			expectedCookie,
-		},
 		{
 			"incorrect data",
 			model.AuthInfo{
 				Email:    "root@.com",
 				Password: "root",
 			},
-			func(ai model.AuthInfo) (string, error) {
+			func(model.AuthInfo) (string, error) {
 				return "", nil
 			},
 			http.StatusBadRequest,
 			"",
+		},
+		{
+			"ok",
+			model.AuthInfo{
+				Email:    "root@root.com",
+				Password: "root1",
+			},
+			func(model.AuthInfo) (string, error) {
+				return expectedToken, nil
+			},
+			http.StatusOK,
+			expectedToken,
 		},
 		{
 			"user not exists",
@@ -159,7 +160,7 @@ func TestAuthHandler(t *testing.T) {
 				Email:    "root@root.com",
 				Password: "root1",
 			},
-			func(ai model.AuthInfo) (string, error) {
+			func(model.AuthInfo) (string, error) {
 				return "", fmt.Errorf("internal error")
 			},
 			http.StatusInternalServerError,
@@ -179,8 +180,7 @@ func TestAuthHandler(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			req, err := http.NewRequest("POST", "/unauth/auth", bytes.NewBuffer(body))
-
+			req, err := http.NewRequest("POST", "/auth", bytes.NewBuffer(body))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -191,15 +191,36 @@ func TestAuthHandler(t *testing.T) {
 			reg.ServeHTTP(rr, req)
 
 			status := rr.Code
-
 			if status != test.expectedStatusCode {
-				t.Errorf("%s:handler returned wrong status code: got %v want %v",
+				t.Fatalf("%s:handler returned wrong status code: got %v want %v",
 					test.name, status, test.expectedStatusCode)
 			}
 
-			if cookie := rr.Header().Get("Set-Cookie"); cookie != test.expectedCookie {
-				t.Errorf("%s:handler returned wrong token : got %v want %v",
-					test.name, cookie, test.expectedCookie)
+			if rr.Body.Len() <= 0 {
+				return
+			}
+
+			bodyResp := model.JSONResult{}
+
+			err = json.NewDecoder(rr.Body).Decode(&bodyResp)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if bodyResp.Data == nil {
+				return
+			}
+
+			token := model.Token{}
+			err = mapstructure.Decode(bodyResp.Data, &token)
+
+			if err != nil {
+				t.Fatalf("%s:incorrect data format get %v", test.name, bodyResp)
+			}
+
+			if token.Token != expectedToken {
+				t.Fatalf("%s:handler returned wrong token: got %v want %v",
+					test.name, token, expectedToken)
 			}
 		})
 	}
@@ -220,6 +241,7 @@ func (s *userManagServiceMock) CreateUser(newUser *model.NewUser) error {
 func (s *userManagServiceMock) CreateToken(authInfo model.AuthInfo) (string, error) {
 	return s.mockCreateToken(authInfo)
 }
+
 func (s *userManagServiceMock) ParseToken(tokenStr string) (id int, role map[string]struct{}, err error) {
 	return 0, nil, nil
 }

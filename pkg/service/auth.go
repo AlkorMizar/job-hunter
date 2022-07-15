@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
@@ -73,8 +72,6 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	log.Printf("User credentials %d %v", user.ID, user.Roles)
 
 	// Create the Claims
 	claims := &Claims{
