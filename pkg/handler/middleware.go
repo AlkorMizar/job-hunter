@@ -20,14 +20,13 @@ func (h *Handler) authentication(next http.Handler) http.Handler {
 		if err != nil {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
-		} else {
-			id, roles, err := h.services.Authorization.ParseToken(token.Value)
-			if err != nil {
-				http.Error(w, "Forbidden, please authorize", http.StatusForbidden)
-				return
-			}
-			ctx := context.WithValue(r.Context(), keyUserInfo, &userInfo{id, roles})
-			next.ServeHTTP(w, r.WithContext(ctx))
 		}
+		id, roles, err := h.services.Authorization.ParseToken(token.Value)
+		if err != nil {
+			http.Error(w, "Forbidden, please authorize", http.StatusForbidden)
+			return
+		}
+		ctx := context.WithValue(r.Context(), keyUserInfo, &userInfo{id, roles})
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

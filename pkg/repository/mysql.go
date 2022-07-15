@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" //nolint:blank-imports // only for sqlx
 	"github.com/jmoiron/sqlx"
+)
+
+const (
+	ConnMaxLifetime = time.Minute * 3
+	MaxOpenConns    = 10
+	MaxIdleConns    = 10
 )
 
 type Config struct {
@@ -18,7 +24,7 @@ type Config struct {
 	Options  string
 }
 
-func NewMySQLDB(cfg Config) (*sqlx.DB, error) {
+func NewMySQLDB(cfg *Config) (*sqlx.DB, error) {
 	db, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@%s(%s:%s)/%s?%s",
 		cfg.Username, cfg.Password, cfg.Protocol, cfg.Host, cfg.Port, cfg.DBName, cfg.Options))
 	if err != nil {
@@ -30,9 +36,9 @@ func NewMySQLDB(cfg Config) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	db.SetConnMaxLifetime(time.Minute * 3)
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
+	db.SetConnMaxLifetime(ConnMaxLifetime)
+	db.SetMaxOpenConns(MaxOpenConns)
+	db.SetMaxIdleConns(MaxIdleConns)
 
 	return db, nil
 }

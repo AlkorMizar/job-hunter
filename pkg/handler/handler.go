@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	_ "github.com/AlkorMizar/job-hunter/api/docs"
+	_ "github.com/AlkorMizar/job-hunter/api/docs" //nolint:blank-imports // for swagger documentation page
 	"github.com/AlkorMizar/job-hunter/pkg/service"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -25,7 +25,7 @@ func (h *Handler) InitRoutes() *mux.Router {
 	unauth.HandleFunc("/reg", h.register).Methods(http.MethodPost)
 	unauth.HandleFunc("/auth", h.authorize).Methods(http.MethodPost)
 	unauth.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/unauth/swagger/doc.json"), //The url pointing to API definition
+		httpSwagger.URL("http://localhost:8080/unauth/swagger/doc.json"),
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("none"),
 		httpSwagger.DomID("swagger-ui"),

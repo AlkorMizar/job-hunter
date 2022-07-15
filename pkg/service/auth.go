@@ -19,7 +19,7 @@ const (
 var signingKey = []byte("dontforgettochange")
 
 type Claims struct {
-	UserId int                 `json:"userId"`
+	UserID int                 `json:"userId"`
 	Roles  map[string]struct{} `json:"roles"`
 	jwt.RegisteredClaims
 }
@@ -34,7 +34,7 @@ func NewAuthService(repo repository.UserManagment) *AuthService {
 	}
 }
 
-func (s *AuthService) CreateUser(newUser model.NewUser) error {
+func (s *AuthService) CreateUser(newUser *model.NewUser) error {
 	pwd, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcryptCost)
 
 	if err != nil {
@@ -56,30 +56,29 @@ func (s *AuthService) CreateUser(newUser model.NewUser) error {
 		Roles:    roles,
 	}
 
-	return s.repo.CreateUser(user)
+	return s.repo.CreateUser(&user)
 }
 
 func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
-
 	user, err := s.repo.GetUser(authInfo.Email)
 	if err != nil {
 		return "", err
 	}
 
-	if err = bcrypt.CompareHashAndPassword(user.Password, []byte(authInfo.Password)); err != nil {
-		return "", err
+	if e := bcrypt.CompareHashAndPassword(user.Password, []byte(authInfo.Password)); e != nil {
+		return "", e
 	}
 
-	user.Roles, err = s.repo.GetRoles(user)
+	user.Roles, err = s.repo.GetRoles(&user)
 	if err != nil {
 		return "", err
 	}
 
-	log.Printf("User credentials %d %v", user.Id, user.Roles)
+	log.Printf("User credentials %d %v", user.ID, user.Roles)
 
 	// Create the Claims
 	claims := &Claims{
-		UserId: user.Id,
+		UserID: user.ID,
 		Roles:  user.Roles,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
@@ -104,9 +103,8 @@ func (s *AuthService) ParseToken(tokenStr string) (id int, roles map[string]stru
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims.UserId, claims.Roles, nil
-	} else {
-		return 0, nil, fmt.Errorf("invalid token")
+		return claims.UserID, claims.Roles, nil
 	}
 
+	return 0, nil, fmt.Errorf("invalid token")
 }

@@ -8,18 +8,18 @@ import (
 )
 
 type User struct {
-	Id          int                 `json:"idUser" db:"idUser"`
-	Login       string              `json:"login" db:"login"`
-	FullName    string              `json:"fullName" db:"fullName"`
-	Email       string              `json:"email" db:"email"`
-	Password    []byte              `json:"password" db:"password"`
-	DateCreated time.Time           `json:"datecreated" db:"dateCreated"`
-	LastCheck   time.Time           `json:"lastcheck" db:"lastCheck"`
-	Roles       map[string]struct{} `json:-`
+	ID          int       `json:"idUser" db:"idUser"`
+	Login       string    `json:"login" db:"login"`
+	FullName    string    `json:"fullName" db:"fullName"`
+	Email       string    `json:"email" db:"email"`
+	Password    []byte    `json:"password" db:"password"`
+	DateCreated time.Time `json:"datecreated" db:"dateCreated"`
+	LastCheck   time.Time `json:"lastcheck" db:"lastCheck"`
+	Roles       map[string]struct{}
 }
 
 type Role struct {
-	Id   int    `json:"idRole" db:"idRole"`
+	ID   int    `json:"idRole" db:"idRole"`
 	Name string `json:"name" db:"name"`
 }
 
@@ -33,7 +33,7 @@ func NewUserManagMsql(db *sqlx.DB) *UserManagMysql {
 	}
 }
 
-func (r *UserManagMysql) CreateUser(user User) error {
+func (r *UserManagMysql) CreateUser(user *User) error {
 	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullName)"
 	res, err := r.db.NamedExec(query, user)
 
@@ -56,16 +56,19 @@ func (r *UserManagMysql) CreateUser(user User) error {
 
 func (r *UserManagMysql) GetUser(email string) (User, error) {
 	var user User
+
 	query := "SELECT * FROM user WHERE email=?"
+
 	err := r.db.Get(&user, query, email)
+
 	return user, err
 }
 
-func (r *UserManagMysql) GetRoles(user User) (map[string]struct{}, error) {
+func (r *UserManagMysql) GetRoles(user *User) (map[string]struct{}, error) {
 	roles := make(map[string]struct{})
 	rolesArr := []Role{}
 	query := "SELECT role.name from role JOIN user_has_role ON User_idUser=? AND Role_idRole=idRole; "
-	err := r.db.Select(&rolesArr, query, user.Id)
+	err := r.db.Select(&rolesArr, query, user.ID)
 
 	if err != nil {
 		return nil, err
@@ -78,29 +81,30 @@ func (r *UserManagMysql) GetRoles(user User) (map[string]struct{}, error) {
 	return roles, err
 }
 
-func (r *UserManagMysql) SetRoles(user User) error {
+func (r *UserManagMysql) SetRoles(user *User) (err error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(`DELETE FROM user_has_role WHERE User_idUser=?`, user.Id)
+	_, err = tx.Exec(`DELETE FROM user_has_role WHERE User_idUser=?`, user.ID)
 	if err != nil {
 		return err
 	}
-	for k, _ := range user.Roles {
-		res, err := tx.Exec(`
+
+	for k := range user.Roles {
+		res, e := tx.Exec(`
 		insert into user_has_role (User_idUser, Role_idRole)
 		select ?, idRole from role
-		where name = ?;`, user.Id, k)
-		if err != nil {
-			return err
+		where name = ?;`, user.ID, k)
+		if e != nil {
+			return e
 		}
 
-		num, err := res.RowsAffected()
+		num, e := res.RowsAffected()
 
-		if err != nil {
-			return err
+		if e != nil {
+			return e
 		}
 
 		if num != 1 {
@@ -108,7 +112,12 @@ func (r *UserManagMysql) SetRoles(user User) error {
 		}
 	}
 
-	defer tx.Commit()
+	defer func() {
+		e := tx.Commit()
+		if e != nil {
+			err = e
+		}
+	}()
 
 	return nil
 }

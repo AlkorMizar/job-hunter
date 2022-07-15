@@ -21,8 +21,8 @@ import (
 // @BasePath  /
 
 // @securityDefinitions.apikey ApiKeyAuth
-//@in header
-//@name Set-Cookie
+// @in header
+// @name Set-Cookie
 
 func main() {
 	if err := initConfig(); err != nil {
@@ -33,7 +33,7 @@ func main() {
 		log.Fatalf("error loading env variables: %s", err.Error())
 	}
 
-	db, err := repository.NewMySQLDB(repository.Config{
+	db, err := repository.NewMySQLDB(&repository.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),
@@ -45,9 +45,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize db: %s", err.Error())
 	}
+
 	repo := repository.NewRepository(db)
-	service := service.NewService(repo)
-	router := handler.NewHandler(service)
+
+	srv := service.NewService(repo)
+
+	router := handler.NewHandler(srv)
+
 	server := pkg.NewServer(viper.GetString("adr.host"), viper.GetString("adr.port"), router.InitRoutes())
 	if err := server.Run(); err != nil {
 		log.Fatalf("error ocured during run %s", err.Error())
@@ -57,5 +61,6 @@ func main() {
 func initConfig() error {
 	viper.AddConfigPath("../../configs")
 	viper.SetConfigName("config")
+
 	return viper.ReadInConfig()
 }

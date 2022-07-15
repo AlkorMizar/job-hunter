@@ -19,7 +19,6 @@ const (
 )
 
 func TestRegisterHandler(t *testing.T) {
-
 	tests := []struct {
 		name               string
 		newUser            model.NewUser
@@ -95,7 +94,6 @@ func TestRegisterHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			services := &service.Service{Authorization: &userManagServiceMock{}}
 			handler := Handler{services}
 			body, err := json.Marshal(test.newUser)
@@ -125,7 +123,6 @@ func TestRegisterHandler(t *testing.T) {
 }
 
 func TestAuthHandler(t *testing.T) {
-
 	tests := []struct {
 		name               string
 		authInfo           model.AuthInfo
@@ -173,7 +170,6 @@ func TestAuthHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			services := &service.Service{Authorization: &userManagServiceMock{
 				mockCreateToken: test.mock,
 			}}
@@ -211,7 +207,6 @@ func TestAuthHandler(t *testing.T) {
 }
 
 func TestOutHandler(t *testing.T) {
-
 	tokenCookie := &http.Cookie{
 		Name:     "Token",
 		Value:    "token",
@@ -222,7 +217,7 @@ func TestOutHandler(t *testing.T) {
 	services := &service.Service{Authorization: &userManagServiceMock{}}
 	handler := Handler{services}
 
-	req, err := http.NewRequest("POST", "/auth/out", nil)
+	req, err := http.NewRequest("POST", "/auth/out", http.NoBody)
 	req.AddCookie(tokenCookie)
 
 	if err != nil {
@@ -242,7 +237,11 @@ func TestOutHandler(t *testing.T) {
 	}
 
 	resp := rr.Result()
+
+	defer resp.Body.Close()
+
 	resp.Cookies()
+
 	expectedCookie := "Token=; HttpOnly"
 
 	if cookie := rr.Header().Get("Set-Cookie"); cookie != expectedCookie {
@@ -255,16 +254,17 @@ type userManagServiceMock struct {
 	mockCreateToken func(model.AuthInfo) (string, error)
 }
 
-func (s *userManagServiceMock) CreateUser(newUser model.NewUser) error {
+func (s *userManagServiceMock) CreateUser(newUser *model.NewUser) error {
 	if newUser.Login == notUniqueLogin {
 		return fmt.Errorf("Not unique")
 	}
+
 	return nil
 }
 
 func (s *userManagServiceMock) CreateToken(authInfo model.AuthInfo) (string, error) {
 	return s.mockCreateToken(authInfo)
 }
-func (s *userManagServiceMock) ParseToken(tokenStr string) (int, map[string]struct{}, error) {
+func (s *userManagServiceMock) ParseToken(tokenStr string) (id int, role map[string]struct{}, err error) {
 	return 0, nil, nil
 }

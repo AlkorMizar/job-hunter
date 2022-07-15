@@ -22,10 +22,10 @@ import (
 // @Failure      500  {string}  string
 // @Router       /unauth/reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
-
 	validate := validator.New()
 
 	decoder := json.NewDecoder(r.Body)
+
 	var newUser model.NewUser
 
 	err := decoder.Decode(&newUser)
@@ -33,6 +33,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "incorrect data format", http.StatusBadRequest)
+
 		return
 	}
 
@@ -41,19 +42,21 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "incorrect fields", http.StatusBadRequest)
+
 		return
 	}
 
-	err = h.services.Authorization.CreateUser(newUser)
+	err = h.services.Authorization.CreateUser(&newUser)
 
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
+
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, `user created`)
+	_, _ = io.WriteString(w, `user created`)
 }
 
 // @Summary      Authorization
@@ -69,7 +72,9 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Router       /unauth/auth [post]
 func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
+
 	decoder := json.NewDecoder(r.Body)
+
 	var authInfo model.AuthInfo
 
 	err := decoder.Decode(&authInfo)
@@ -77,6 +82,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "incorrect data format", http.StatusBadRequest)
+
 		return
 	}
 
@@ -85,6 +91,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "incorrect fields", http.StatusBadRequest)
+
 		return
 	}
 
@@ -93,6 +100,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -105,7 +113,9 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	http.SetCookie(w, tokenCookie)
-	io.WriteString(w, `authorized`)
+
+	_, _ = io.WriteString(w, `authorized`)
+
 	log.Print(tokenCookie)
 }
 
@@ -120,7 +130,6 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 // @Failure 500  {string}  string
 // @Router       /auth/out [post]
 func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
-
 	tokenCookie := &http.Cookie{
 		Name:     "Token",
 		Value:    "",
@@ -130,5 +139,6 @@ func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	http.SetCookie(w, tokenCookie)
-	io.WriteString(w, `log out`)
+
+	_, _ = io.WriteString(w, `log out`)
 }

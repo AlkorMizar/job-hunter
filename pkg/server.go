@@ -10,14 +10,20 @@ type Server struct {
 	httpServer *http.Server
 }
 
+const (
+	MaxHeaderBytes = 1 << 20 // 1 MB
+	ReadTimeout    = 10 * time.Second
+	WriteTimeout   = 10 * time.Second
+)
+
 // function called to create service and configure it
 func NewServer(host, port string, handler http.Handler) *Server {
 	server := http.Server{
 		Addr:           host + ":" + port,
 		Handler:        handler,
-		MaxHeaderBytes: 1 << 20, // 1 MB
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: MaxHeaderBytes,
+		ReadTimeout:    ReadTimeout,
+		WriteTimeout:   WriteTimeout,
 	}
 
 	return &Server{
