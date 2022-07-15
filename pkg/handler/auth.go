@@ -111,26 +111,3 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(body)
 }
-
-// @Summary      Log out
-// @Description  log out user, clear token
-// @Tags         auth
-// @Security ApiKeyAuth
-// @Accept       json
-// @Produce      json
-// @Success 200  {string}  string
-// @Failure 500  {string}  string
-// @Router       /auth/out [post]
-func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
-	tokenCookie := &http.Cookie{
-		Name:     "Token",
-		Value:    "",
-		HttpOnly: true,
-		MaxAge:   0,
-	}
-
-	w.WriteHeader(http.StatusOK)
-	http.SetCookie(w, tokenCookie)
-
-	_, _ = io.WriteString(w, `log out`)
-}

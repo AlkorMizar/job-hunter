@@ -22,7 +22,7 @@ import (
 
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
-// @name Set-Cookie
+// @name Authorization
 
 func main() {
 	if err := initConfig(); err != nil {
