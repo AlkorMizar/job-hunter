@@ -14,6 +14,12 @@ definitions:
     - email
     - password
     type: object
+  model.JSONResult:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
   model.NewUser:
     properties:
       cPassword:
@@ -33,14 +39,20 @@ definitions:
         default: test1
         type: string
       roles:
-        default: ROLE
-        type: string
+        items:
+          type: string
+        type: array
     required:
     - cPassword
     - email
     - login
     - password
     - roles
+    type: object
+  model.Token:
+    properties:
+      token:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -50,34 +62,7 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /auth/out:
-    post:
-      consumes:
-      - application/json
-      description: log out user, clear token
-      parameters:
-      - description: 'tokien '
-        in: header
-        name: Cookie
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: Log out
-      tags:
-      - auth
-  /unauth/auth:
+  /auth:
     post:
       consumes:
       - application/json
@@ -93,25 +78,26 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          headers:
-            Set-Cookie:
-              description: Token
-              type: object
+          description: Message and token
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/model.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Token'
+              type: object
         "404":
           description: Not Found
           schema:
-            type: string
+            $ref: '#/definitions/model.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/model.JSONResult'
       summary: Authorization
       tags:
       - auth
-  /unauth/reg:
+  /reg:
     post:
       consumes:
       - application/json
@@ -129,21 +115,21 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
-        "400":
-          description: Bad Request
+            $ref: '#/definitions/model.JSONResult'
+        "404":
+          description: Not Found
           schema:
-            type: string
+            $ref: '#/definitions/model.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/model.JSONResult'
       summary: Registration
       tags:
       - auth
 securityDefinitions:
   ApiKeyAuth:
     in: header
-    name: Set-Cookie
+    name: Authorization
     type: apiKey
 swagger: "2.0"

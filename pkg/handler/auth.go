@@ -16,10 +16,10 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param   newUser      body     model.NewUser true "Login, email, password"
-// @Success      200  {string}  string
-// @Failure      400  {string}  string
-// @Failure      500  {string}  string
-// @Router       /unauth/reg [post]
+// @Success      200  {object}  model.JSONResult
+// @Failure      404  {object}  model.JSONResult
+// @Failure      500  {object}  model.JSONResult
+// @Router       /reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
 
@@ -31,7 +31,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "incorrect data format", http.StatusBadRequest)
+		writeErrResp(w, "incorrect data format", http.StatusBadRequest)
 
 		return
 	}
@@ -40,7 +40,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "incorrect fields", http.StatusBadRequest)
+		writeErrResp(w, "incorrect fields", http.StatusBadRequest)
 
 		return
 	}
@@ -49,7 +49,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		writeErrResp(w, "internal error", http.StatusInternalServerError)
 
 		return
 	}
@@ -65,9 +65,9 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        authInfo   body     model.AuthInfo true "Email and password"
 // @Success      200  {object}  model.JSONResult{data=model.Token} "Message and token"
-// @Failure      404  {string}  string
-// @Failure      500  {string}  string
-// @Router       /unauth/auth [post]
+// @Failure      404  {object}  model.JSONResult
+// @Failure      500  {object}  model.JSONResult
+// @Router       /auth [post]
 func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
 
@@ -79,7 +79,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "incorrect data format", http.StatusBadRequest)
+		writeErrResp(w, "incorrect data format", http.StatusBadRequest)
 
 		return
 	}
@@ -88,7 +88,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "incorrect fields", http.StatusBadRequest)
+		writeErrResp(w, "incorrect fields", http.StatusBadRequest)
 
 		return
 	}
@@ -97,7 +97,7 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		writeErrResp(w, "internal error", http.StatusInternalServerError)
 
 		return
 	}
@@ -109,5 +109,16 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(body)
+}
+
+func writeErrResp(w http.ResponseWriter, mess string, status int) {
+	body := model.JSONResult{
+		Message: mess,
+	}
+
+	w.WriteHeader(status)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 	json.NewEncoder(w).Encode(body)
 }

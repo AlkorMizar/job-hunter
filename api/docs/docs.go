@@ -17,50 +17,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/out": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "log out user, clear token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Log out",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "tokien ",
-                        "name": "Cookie",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/unauth/auth": {
+        "/auth": {
             "post": {
                 "description": "if user exists sets cookie with JWT token",
                 "consumes": [
@@ -86,33 +43,39 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Message and token",
                         "schema": {
-                            "type": "string"
-                        },
-                        "headers": {
-                            "Set-Cookie": {
-                                "type": "object",
-                                "description": "Token"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/model.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.Token"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/model.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/model.JSONResult"
                         }
                     }
                 }
             }
         },
-        "/unauth/reg": {
+        "/reg": {
             "post": {
                 "description": "creates new user if unique login and email",
                 "consumes": [
@@ -140,19 +103,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/model.JSONResult"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/model.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/model.JSONResult"
                         }
                     }
                 }
@@ -176,6 +139,15 @@ const docTemplate = `{
                     "default": "test1",
                     "maxLength": 40,
                     "minLength": 5
+                }
+            }
+        },
+        "model.JSONResult": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
                 }
             }
         },
@@ -210,8 +182,18 @@ const docTemplate = `{
                     "default": "test1"
                 },
                 "roles": {
-                    "type": "string",
-                    "default": "ROLE"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.Token": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
                 }
             }
         }
@@ -219,7 +201,7 @@ const docTemplate = `{
     "securityDefinitions": {
         "ApiKeyAuth": {
             "type": "apiKey",
-            "name": "Set-Cookie",
+            "name": "Authorization",
             "in": "header"
         }
     }
