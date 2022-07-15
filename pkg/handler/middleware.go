@@ -16,21 +16,21 @@ type ctxKey string
 var KeyUserInfo = ctxKey("userInfo")
 
 const (
-	authorizationHeaderKey  = "authorization"
+	authorizationHeaderKey  = "Authorization"
 	authorizationTypeBearer = "bearer"
-	authorizationPayloadKey = "authorization_payload"
+	authTokenFields         = 2
 )
 
 func (h *Handler) authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, ok := r.Header["Authorization"]
+		token, ok := r.Header[authorizationHeaderKey]
 		if !ok || len(token) != 1 {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		fields := strings.Fields(token[0])
-		if len(fields) < 2 {
+		if len(fields) < authTokenFields {
 			http.Error(w, "Invalid authorization header format", http.StatusForbidden)
 			return
 		}

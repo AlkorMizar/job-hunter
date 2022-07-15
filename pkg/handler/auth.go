@@ -103,13 +103,16 @@ func (h *Handler) authorize(w http.ResponseWriter, r *http.Request) {
 	}
 
 	body := model.JSONResult{
-		Message: "Succesfully authorized",
+		Message: "Successfully authorized",
 		Data:    model.Token{Token: token},
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(body)
+
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func writeErrResp(w http.ResponseWriter, mess string, status int) {
@@ -120,5 +123,8 @@ func writeErrResp(w http.ResponseWriter, mess string, status int) {
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	json.NewEncoder(w).Encode(body)
+
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
