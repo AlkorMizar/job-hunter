@@ -15,6 +15,15 @@ func NewUserServ(repo repository.UserManagment) *UserServ {
 	}
 }
 
-func (u *UserServ) GetUser(id int) (user *model.User, err error) {
-	return &model.User{}, nil
+func (u *UserServ) GetUser(id int) (*model.User, error) {
+	userDB, err := u.repo.GetUserFromId(id)
+	if err != nil {
+		return nil, err
+	}
+	user := &model.User{
+		Login:    userDB.Login,
+		Email:    userDB.Email,
+		FullName: userDB.FullName,
+	}
+	return user, nil
 }
