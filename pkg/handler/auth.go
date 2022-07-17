@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 
@@ -54,9 +53,17 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	body := model.JSONResult{
+		Message: "Successfully authorized",
+		Data:    nil,
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = io.WriteString(w, `user created`)
+
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 // @Summary      Authentication
