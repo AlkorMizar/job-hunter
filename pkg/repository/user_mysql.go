@@ -121,3 +121,11 @@ func (r *UserManagMysql) SetRoles(user *User) (err error) {
 
 	return nil
 }
+
+func (r *UserManagMysql) GetUserFromId(id int) (user User, err error) {
+	query := "SELECT * FROM user WHERE idUser=?"
+
+	err = r.db.Get(&user, query, id)
+
+	return user, err
+}
