@@ -21,3 +21,10 @@ type JSONResult struct {
 type Token struct {
 	Token string `json:"token"`
 }
+
+type User struct {
+	Login    string   `json:"login" binding:"required" minimum:"5" maximum:"40" default:"test" validate:"required,min=3,max=40"`
+	Email    string   `json:"email" binding:"required" maximum:"255"  default:"test@test.com" validate:"required,email"`
+	Roles    []string `json:"roles" binding:"required" validate:"required"`
+	FullName string   `json:"fullName" binding:"required" minimum:"5" maximum:"150" default:"test" validate:"required,min=3,max=150"`
+}
