@@ -10,6 +10,7 @@ import (
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/AlkorMizar/job-hunter/pkg/service"
+	"github.com/AlkorMizar/job-hunter/pkg/service/mock"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -92,10 +93,22 @@ func TestRegisterHandler(t *testing.T) {
 		},
 	}
 
+	service := &service.Service{
+		Authorization: &mock.AuthServiceMock{
+			MockCreateUser: func(newUser *model.NewUser) error {
+				if newUser.Login == notUniqueLogin {
+					return fmt.Errorf("Internal error")
+				}
+				return nil
+			},
+		},
+		User: nil,
+	}
+	handler := Handler{service}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			services := &service.Service{Authorization: &userManagServiceMock{}}
-			handler := Handler{services}
+
 			body, err := json.Marshal(test.newUser)
 
 			if err != nil {
@@ -170,10 +183,14 @@ func TestAuthHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			services := &service.Service{Authorization: &userManagServiceMock{
-				mockCreateToken: test.mock,
-			}}
-			handler := Handler{services}
+
+			service := &service.Service{
+				Authorization: &mock.AuthServiceMock{
+					MockCreateToken: test.mock,
+				},
+				User: nil,
+			}
+			handler := Handler{service}
 			body, err := json.Marshal(test.authInfo)
 
 			if err != nil {
@@ -224,24 +241,4 @@ func TestAuthHandler(t *testing.T) {
 			}
 		})
 	}
-}
-
-type userManagServiceMock struct {
-	mockCreateToken func(model.AuthInfo) (string, error)
-}
-
-func (s *userManagServiceMock) CreateUser(newUser *model.NewUser) error {
-	if newUser.Login == notUniqueLogin {
-		return fmt.Errorf("Not unique")
-	}
-
-	return nil
-}
-
-func (s *userManagServiceMock) CreateToken(authInfo model.AuthInfo) (string, error) {
-	return s.mockCreateToken(authInfo)
-}
-
-func (s *userManagServiceMock) ParseToken(tokenStr string) (id int, role map[string]struct{}, err error) {
-	return 0, nil, nil
 }
