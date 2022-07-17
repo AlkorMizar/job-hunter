@@ -11,12 +11,18 @@ type Authorization interface {
 	ParseToken(tokenStr string) (int, map[string]struct{}, error)
 }
 
+type User interface {
+	GetUser(id int) (user *repository.User, err error)
+}
+
 type Service struct {
 	Authorization
+	User
 }
 
 func NewService(repo *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repo.UserManagment),
+		User:          NewUserServ(repo.UserManagment),
 	}
 }
