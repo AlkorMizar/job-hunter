@@ -16,14 +16,22 @@ func NewUserServ(repo repository.UserManagment) *UserServ {
 }
 
 func (u *UserServ) GetUser(id int) (*model.User, error) {
+
 	userDB, err := u.repo.GetUserFromId(id)
 	if err != nil {
 		return nil, err
 	}
+
+	roles := make([]string, 0)
+	for k, _ := range userDB.Roles {
+		roles = append(roles, k)
+	}
+
 	user := &model.User{
 		Login:    userDB.Login,
 		Email:    userDB.Email,
 		FullName: userDB.FullName,
+		Roles:    roles,
 	}
 	return user, nil
 }
