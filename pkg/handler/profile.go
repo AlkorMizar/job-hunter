@@ -12,20 +12,23 @@ import (
 // @Security     ApiKeyAuth
 // @Tags         user
 // @Produce      json
-// @Param        authInfo   body     model.AuthInfo true "Email and password"
-// @Success      200  {object}  model.JSONResult{data=model.User} "Message and token"
+// @Success      200  {object}  model.JSONResult{data=model.User} "login, email, full name"
 // @Failure      404  {object}  model.JSONResult
 // @Failure      500  {object}  model.JSONResult
 // @Router       /user [get]
 func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	userInf, ok := r.Context().Value(KeyUserInfo).(userInfo)
 	if !ok {
-		writeErrResp(w, "User info is invalid", http.StatusBadRequest)
+		writeErrResp(w, "users' info is invalid", http.StatusBadRequest)
+
+		return
 	}
 
 	res, err := h.services.GetUser(userInf.id)
 	if err != nil {
 		writeErrResp(w, "internal error", http.StatusInternalServerError)
+
+		return
 	}
 
 	body := model.JSONResult{
