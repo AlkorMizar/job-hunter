@@ -54,6 +54,31 @@ definitions:
       token:
         type: string
     type: object
+  model.User:
+    properties:
+      email:
+        default: test@test.com
+        type: string
+      fullName:
+        default: test
+        maxLength: 150
+        minLength: 3
+        type: string
+      login:
+        default: test
+        maxLength: 40
+        minLength: 3
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+    required:
+    - email
+    - fullName
+    - login
+    - roles
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -127,6 +152,34 @@ paths:
       summary: Registration
       tags:
       - auth
+  /user:
+    get:
+      description: Returns users' login, email, full name
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: login, email, full name
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.JSONResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get User
+      tags:
+      - user
 securityDefinitions:
   ApiKeyAuth:
     in: header
