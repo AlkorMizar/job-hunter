@@ -23,7 +23,7 @@ func (u *UserServ) GetUser(id int) (*model.User, error) {
 	}
 
 	roles := make([]string, 0)
-	for k, _ := range userDB.Roles {
+	for k := range userDB.Roles {
 		roles = append(roles, k)
 	}
 
@@ -34,4 +34,8 @@ func (u *UserServ) GetUser(id int) (*model.User, error) {
 		Roles:    roles,
 	}
 	return user, nil
+}
+
+func (u *UserServ) UpdateUser(id int, inf model.UpdateInfo) error {
+	return nil
 }
