@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
-	"github.com/go-playground/validator"
 )
 
 // @Summary      Get User
@@ -65,24 +64,10 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validate := validator.New()
-
-	decoder := json.NewDecoder(r.Body)
-
 	var update model.UpdateInfo
 
-	err := decoder.Decode(&update)
-
-	if err != nil {
+	if err := getFromBody(r, &update); err != nil {
 		writeErrResp(w, "incorrect data format", http.StatusBadRequest)
-
-		return
-	}
-
-	err = validate.Struct(update)
-
-	if err != nil {
-		writeErrResp(w, "incorrect fields", http.StatusBadRequest)
 
 		return
 	}
@@ -96,8 +81,7 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = h.services.UpdateUser(userInf.id, update)
-	if err != nil {
+	if err := h.services.UpdateUser(userInf.id, update); err != nil {
 		writeErrResp(w, "internal error", http.StatusInternalServerError)
 
 		return
@@ -105,7 +89,6 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	body := model.JSONResult{
 		Message: "Successfully authorized",
-		Data:    nil,
 	}
 
 	w.WriteHeader(http.StatusOK)
