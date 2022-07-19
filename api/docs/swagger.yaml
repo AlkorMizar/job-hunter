@@ -54,6 +54,22 @@ definitions:
       token:
         type: string
     type: object
+  model.UpdateInfo:
+    properties:
+      email:
+        default: test@test.com
+        type: string
+      fullName:
+        default: test
+        maxLength: 150
+        minLength: 3
+        type: string
+      login:
+        default: test
+        maxLength: 40
+        minLength: 3
+        type: string
+    type: object
   model.User:
     properties:
       email:
@@ -154,12 +170,12 @@ paths:
       - auth
   /user:
     get:
-      description: Returns users' login, email, full name
+      description: Returns users' login, email, full name,roles
       produces:
       - application/json
       responses:
         "200":
-          description: login, email, full name
+          description: login, email, full name,roles
           schema:
             allOf:
             - $ref: '#/definitions/model.JSONResult'
@@ -178,6 +194,37 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get User
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Changes users' login, email, full name
+      parameters:
+      - description: Login, email, full name
+        in: body
+        name: newInfo
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.JSONResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.JSONResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Updates User
       tags:
       - user
 securityDefinitions:
