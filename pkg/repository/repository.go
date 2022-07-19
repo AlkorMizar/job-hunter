@@ -9,7 +9,7 @@ type UserManagment interface {
 	SetRoles(user *User) error
 	GetUserFromId(id int) (user *User, err error)
 	UpdateUserStr(id int, updateU *User) (err error)
-	SetPassword(id int, pwd string) error
+	SetPassword(id int, pwd []byte) error
 	GetUserById(id int) (User, error)
 }
 

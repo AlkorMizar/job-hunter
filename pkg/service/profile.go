@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/AlkorMizar/job-hunter/pkg/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServ struct {
@@ -48,5 +49,24 @@ func (u *UserServ) UpdateUser(id int, inf model.UpdateInfo) error {
 }
 
 func (u *UserServ) UpdatePassword(id int, pwd model.Passwords) error {
+	user, err := u.repo.GetUserById(id)
+	if err != nil {
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(pwd.CurrPassword)); err != nil {
+		return err
+	}
+
+	pwdHash, err := bcrypt.GenerateFromPassword([]byte(pwd.NewPassword), bcryptCost)
+
+	if err != nil {
+		return err
+	}
+
+	if err := u.repo.SetPassword(id, pwdHash); err != nil {
+		return err
+	}
+
 	return nil
 }
