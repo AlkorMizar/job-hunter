@@ -332,3 +332,125 @@ func TestUpdateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdatePassword(t *testing.T) {
+	uInfo := userInfo{
+		1,
+		make(map[string]struct{}),
+	}
+
+	tests := []struct {
+		name               string
+		userInf            interface{}
+		pwds               model.Passwords
+		mock               func(int, model.Passwords) error
+		expectedStatusCode int
+	}{
+		{
+			"ok",
+			uInfo,
+			model.Passwords{
+				CurrPassword: "test",
+				NewPassword:  "test2",
+				CPassword:    "test2",
+			},
+			func(int, model.Passwords) error {
+				return nil
+			},
+			http.StatusOK,
+		},
+		{
+			"incorrect format of new password(empty)",
+			uInfo,
+			model.Passwords{
+				CurrPassword: "test",
+				NewPassword:  "   ",
+				CPassword:    "   ",
+			},
+			func(int, model.Passwords) error {
+				return fmt.Errorf("incorrect new password")
+			},
+			http.StatusBadRequest,
+		},
+		{
+			"incorrect format of new password(less then min)",
+			uInfo,
+			model.Passwords{
+				CurrPassword: "test",
+				NewPassword:  "1 ",
+				CPassword:    "1 ",
+			},
+			func(int, model.Passwords) error {
+				return fmt.Errorf("incorrect new password")
+			},
+			http.StatusBadRequest,
+		},
+		{
+			"new and confirm not the same",
+			uInfo,
+			model.Passwords{
+				CurrPassword: "test",
+				NewPassword:  "test1",
+				CPassword:    "test2",
+			},
+			func(int, model.Passwords) error {
+				return fmt.Errorf("incorrect new password")
+			},
+			http.StatusBadRequest,
+		},
+		{
+			"wrong current password",
+			uInfo,
+			model.Passwords{
+				CurrPassword: "wrong",
+				NewPassword:  "test1",
+				CPassword:    "test2",
+			},
+			func(int, model.Passwords) error {
+				return fmt.Errorf("internal error")
+			},
+			http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			service := &service.Service{
+				User: &mock.UserServiceMock{
+					MockUpdatePwd: test.mock,
+				},
+			}
+
+			handler := Handler{service}
+
+			body, err := json.Marshal(test.pwds)
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req, err := http.NewRequest("PUT", "/user/passwords", bytes.NewBuffer(body))
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			ctx := context.WithValue(req.Context(), KeyUserInfo, test.userInf)
+
+			req = req.WithContext(ctx)
+
+			rr := httptest.NewRecorder()
+
+			reg := http.HandlerFunc(handler.updatePassword)
+
+			reg.ServeHTTP(rr, req)
+
+			// Check the status code is what we expect.
+			if status := rr.Code; status != test.expectedStatusCode {
+				t.Errorf("%s:handler returned wrong status code: got %v want %v",
+					test.name, status, test.expectedStatusCode)
+			}
+		})
+	}
+}
