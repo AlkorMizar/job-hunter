@@ -218,6 +218,57 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/password": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "user can update his password if he has his current password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Updates Users' password",
+                "parameters": [
+                    {
+                        "description": "current,new and confirm passwords",
+                        "name": "newInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Passwords"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.JSONResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.JSONResult"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -284,6 +335,34 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "model.Passwords": {
+            "type": "object",
+            "required": [
+                "CPassword",
+                "CurrPasswoord",
+                "NewPassword"
+            ],
+            "properties": {
+                "CPassword": {
+                    "type": "string",
+                    "default": "test1",
+                    "maxLength": 40,
+                    "minLength": 5
+                },
+                "CurrPasswoord": {
+                    "type": "string",
+                    "default": "test1",
+                    "maxLength": 40,
+                    "minLength": 5
+                },
+                "NewPassword": {
+                    "type": "string",
+                    "default": "test1",
+                    "maxLength": 40,
+                    "minLength": 5
                 }
             }
         },
