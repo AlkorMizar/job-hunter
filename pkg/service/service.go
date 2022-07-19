@@ -14,6 +14,7 @@ type Authorization interface {
 type User interface {
 	GetUser(id int) (user *model.User, err error)
 	UpdateUser(id int, inf model.UpdateInfo) error
+	UpdatePassword(id int, pwd model.Passwords) error
 }
 
 type Service struct {

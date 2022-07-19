@@ -46,3 +46,7 @@ func (u *UserServ) UpdateUser(id int, inf model.UpdateInfo) error {
 
 	return u.repo.UpdateUserStr(id, user)
 }
+
+func (u *UserServ) UpdatePassword(id int, pwd model.Passwords) error {
+	return nil
+}
