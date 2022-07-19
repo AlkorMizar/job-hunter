@@ -1,7 +1,7 @@
 package model
 
 type NewUser struct {
-	Login     string   `json:"login" binding:"required" minimum:"5" maximum:"40" default:"test" validate:"required,min=3,max=40"`
+	Login     string   `json:"login" binding:"required" minimum:"5" maximum:"40" default:"test" validate:"required,min=3,max=40,alphanum"`
 	Email     string   `json:"email" binding:"required" maximum:"255"  default:"test@test.com" validate:"required,email"`
 	Roles     []string `json:"roles" binding:"required" validate:"required"`
 	Password  string   `json:"password" binding:"required"  minimum:"5" maximum:"40" default:"test1" validate:"required,eqfield=CPassword"`
@@ -30,7 +30,7 @@ type User struct {
 }
 
 type UpdateInfo struct {
-	Login    string `json:"login"  minimum:"5" maximum:"40" default:"test" validate:"required,min=3,max=40"`
-	Email    string `json:"email"  maximum:"255"  default:"test@test.com" validate:"required,email"`
-	FullName string `json:"fullName"  minimum:"5" maximum:"150" default:"test" validate:"required,min=3,max=150"`
+	Login    string `json:"login" default:"test" validate:"required_without_all=Email FullName,omitempty,min=3,max=40,alphanum"`
+	Email    string `json:"email" default:"test@test.com" validate:"required_without_all=Login FullName,omitempty,email"`
+	FullName string `json:"fullName" default:"test" validate:"required_without_all=Login Email,omitempty,min=3,max=150"`
 }
