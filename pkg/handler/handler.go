@@ -1,11 +1,9 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	_ "github.com/AlkorMizar/job-hunter/api/docs" //nolint:blank-imports // for swagger documentation page
-	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/AlkorMizar/job-hunter/pkg/service"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -38,18 +36,4 @@ func (h *Handler) InitRoutes() *mux.Router {
 	auth.HandleFunc("/user", h.updateUser).Methods(http.MethodPut)
 
 	return r
-}
-
-func writeErrResp(w http.ResponseWriter, mess string, status int) {
-	body := model.JSONResult{
-		Message: mess,
-	}
-
-	w.WriteHeader(status)
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-
-	if err := json.NewEncoder(w).Encode(body); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
 }
