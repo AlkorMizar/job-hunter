@@ -124,6 +124,10 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func nilMockUpdateUser(id int, inf model.UpdateInfo) error {
+	return nil
+}
+
 func TestUpdateUser(t *testing.T) {
 	uInfo := userInfo{
 		1,
@@ -143,9 +147,7 @@ func TestUpdateUser(t *testing.T) {
 			model.UpdateInfo{
 				Login: "login", Email: "tesd@fsd.com", FullName: "Fluff Puff",
 			},
-			func(id int, inf model.UpdateInfo) error {
-				return nil
-			},
+			nilMockUpdateUser,
 			http.StatusOK,
 		},
 		{
@@ -154,9 +156,7 @@ func TestUpdateUser(t *testing.T) {
 			model.UpdateInfo{
 				Email: "tesd@fsd.com",
 			},
-			func(id int, inf model.UpdateInfo) error {
-				return nil
-			},
+			nilMockUpdateUser,
 			http.StatusOK,
 		},
 		{
@@ -165,27 +165,11 @@ func TestUpdateUser(t *testing.T) {
 			model.UpdateInfo{
 				Login: "login", FullName: "Fluff Puff",
 			},
-			func(id int, inf model.UpdateInfo) error {
-				return nil
-			},
+			nilMockUpdateUser,
 			http.StatusOK,
 		},
 		{
-			"ok, all fields",
-			userInfo{
-				1,
-				make(map[string]struct{}),
-			},
-			model.UpdateInfo{
-				Login: "login", Email: "tesd@fsd.com", FullName: "Fluff Puff",
-			},
-			func(id int, inf model.UpdateInfo) error {
-				return nil
-			},
-			http.StatusOK,
-		},
-		{
-			"bad request body",
+			"bad request body, incorrect all",
 			userInfo{
 				1,
 				make(map[string]struct{}),
@@ -199,7 +183,61 @@ func TestUpdateUser(t *testing.T) {
 			http.StatusBadRequest,
 		},
 		{
-			"bad request userInfo",
+			"bad request body, incorrect login",
+			userInfo{
+				1,
+				make(map[string]struct{}),
+			},
+			model.UpdateInfo{
+				Login: "lo", Email: "tesd@fsd.com",
+			},
+			func(id int, inf model.UpdateInfo) error {
+				return fmt.Errorf("bad request body")
+			},
+			http.StatusBadRequest,
+		},
+		{
+			"bad request body, incorrect email",
+			userInfo{
+				1,
+				make(map[string]struct{}),
+			},
+			model.UpdateInfo{
+				Email: "tesdfsd.com",
+			},
+			func(id int, inf model.UpdateInfo) error {
+				return fmt.Errorf("bad request body")
+			},
+			http.StatusBadRequest,
+		},
+		{
+			"bad request body, incorrect full name",
+			userInfo{
+				1,
+				make(map[string]struct{}),
+			},
+			model.UpdateInfo{
+				Login: "login", Email: "tesd@fsd.com", FullName: "f",
+			},
+			func(id int, inf model.UpdateInfo) error {
+				return fmt.Errorf("bad request body")
+			},
+			http.StatusBadRequest,
+		},
+		{
+			"bad request body, empty",
+			userInfo{
+				1,
+				make(map[string]struct{}),
+			},
+			model.UpdateInfo{},
+			func(id int, inf model.UpdateInfo) error {
+				return fmt.Errorf("bad request body")
+			},
+			http.StatusBadRequest,
+		},
+		{
+			"internal error, incorrect userInfo",
 			userInfo{
 				-1,
 				make(map[string]struct{}),
@@ -210,7 +248,7 @@ func TestUpdateUser(t *testing.T) {
 			func(id int, inf model.UpdateInfo) error {
 				return fmt.Errorf("bad request userInfo")
 			},
-			http.StatusBadRequest,
+			http.StatusInternalServerError,
 		},
 		{
 			"invalid userInfo",
@@ -222,9 +260,7 @@ func TestUpdateUser(t *testing.T) {
 			model.UpdateInfo{
 				Login: "login", Email: "tesd@fsd.com", FullName: "Fluff Puff",
 			},
-			func(id int, inf model.UpdateInfo) error {
-				return nil
-			},
+			nilMockUpdateUser,
 			http.StatusBadRequest,
 		},
 		{
@@ -280,32 +316,6 @@ func TestUpdateUser(t *testing.T) {
 			if status := rr.Code; status != test.expectedStatusCode {
 				t.Fatalf("%s:handler returned wrong status code: got %v want %v",
 					test.name, status, test.expectedStatusCode)
-			}
-
-			if rr.Body.Len() <= 0 {
-				t.Fatal("no body in response")
-			}
-
-			bodyResp := model.JSONResult{}
-
-			err = json.NewDecoder(rr.Body).Decode(&bodyResp)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if bodyResp.Data == nil {
-				return
-			}
-
-			updatedInfo := model.UpdateInfo{}
-			err = mapstructure.Decode(bodyResp.Data, &updatedInfo)
-
-			if err != nil {
-				t.Fatalf("%s:incorrect data format get %v", test.name, bodyResp)
-			}
-
-			if updatedInfo != test.newInf {
-				t.Fatalf("%s:incorrect data format : got %v want %v", test.name, updatedInfo, test.newInf)
 			}
 		})
 	}
