@@ -2,6 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -139,4 +141,42 @@ func (r *UserManagMysql) GetUserFromId(id int) (user *User, err error) {
 	}
 
 	return user, err
+}
+
+func (r *UserManagMysql) UpdateUserStr(id int, updateU *User) (err error) {
+	var setter strings.Builder
+	setter.WriteString("SET ")
+
+	elem := reflect.ValueOf(updateU).Elem()
+	for i := 0; i < elem.NumField(); i++ {
+		dbColName := elem.Type().Field(i).Tag.Get("db")
+		value, ok := elem.Field(i).Interface().(string)
+		if ok && value != "" {
+			setter.WriteString(dbColName + "=\"" + value + "\",")
+		}
+	}
+
+	setCols := setter.String()[0 : setter.Len()-1]
+	if setCols == "SET" {
+		return nil
+	}
+
+	query := "UPDATE user " + setCols + "WHERE idUser=?"
+	res, err := r.db.Exec(query, id)
+
+	if err != nil {
+		return err
+	}
+
+	num, err := res.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if num != 1 {
+		return fmt.Errorf("couldn't insert")
+	}
+
+	return nil
 }
