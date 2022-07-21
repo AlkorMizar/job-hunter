@@ -8,7 +8,6 @@ type UserManagment interface {
 	GetRoles(user *User) (map[string]struct{}, error)
 	SetRoles(user *User) error
 	GetUserFromId(id int) (user *User, err error)
-	UpdateUserStr(id int, updateU *User) (err error)
 }
 
 type Repository struct {
