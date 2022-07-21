@@ -13,7 +13,6 @@ type Authorization interface {
 
 type User interface {
 	GetUser(id int) (user *model.User, err error)
-	UpdateUser(id int, inf model.UpdateInfo) error
 }
 
 type Service struct {
