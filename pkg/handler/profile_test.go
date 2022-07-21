@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,14 +10,9 @@ import (
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/AlkorMizar/job-hunter/pkg/service"
 	"github.com/AlkorMizar/job-hunter/pkg/service/mock"
-	"github.com/mitchellh/mapstructure"
 )
 
 func TestGetUser(t *testing.T) {
-	userNeed := model.User{
-		Login: "bob",
-	}
-
 	tests := []struct {
 		name               string
 		userInf            interface{}
@@ -32,7 +26,7 @@ func TestGetUser(t *testing.T) {
 				make(map[string]struct{}),
 			},
 			func(i int) (*model.User, error) {
-				return &userNeed, nil
+				return &model.User{}, nil
 			},
 			http.StatusOK,
 		},
@@ -92,32 +86,6 @@ func TestGetUser(t *testing.T) {
 			if status := rr.Code; status != test.expectedStatusCode {
 				t.Errorf("%s:handler returned wrong status code: got %v want %v",
 					test.name, status, test.expectedStatusCode)
-			}
-
-			if rr.Body.Len() <= 0 {
-				return
-			}
-
-			bodyResp := model.JSONResult{}
-
-			err = json.NewDecoder(rr.Body).Decode(&bodyResp)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if bodyResp.Data == nil {
-				return
-			}
-
-			user := model.User{}
-			err = mapstructure.Decode(bodyResp.Data, &user)
-
-			if err != nil {
-				t.Fatalf("%s:incorrect data format get %v", test.name, bodyResp)
-			}
-
-			if user.Login != userNeed.Login {
-				t.Fatalf("%s:incorrect data format : got %v want %v", test.name, user, userNeed)
 			}
 		})
 	}
