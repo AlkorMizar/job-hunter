@@ -128,7 +128,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Returns users' login, email, full name,roles",
+                "description": "Returns users' login, email, full name",
                 "produces": [
                     "application/json"
                 ],
@@ -138,7 +138,7 @@ const docTemplate = `{
                 "summary": "Get User",
                 "responses": {
                     "200": {
-                        "description": "login, email, full name,roles",
+                        "description": "login, email, full name",
                         "schema": {
                             "allOf": [
                                 {
@@ -153,55 +153,6 @@ const docTemplate = `{
                                     }
                                 }
                             ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/model.JSONResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.JSONResult"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Changes users' login, email, full name",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Updates User",
-                "parameters": [
-                    {
-                        "description": "Login, email, full name",
-                        "name": "newInfo",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.UpdateInfo"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/model.JSONResult"
                         }
                     },
                     "404": {
@@ -292,23 +243,6 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "type": "string"
-                }
-            }
-        },
-        "model.UpdateInfo": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "default": "test@test.com"
-                },
-                "fullName": {
-                    "type": "string",
-                    "default": "test",
-                },
-                "login": {
-                    "type": "string",
-                    "default": "test",
                 }
             }
         },
