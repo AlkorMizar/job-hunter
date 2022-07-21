@@ -28,9 +28,3 @@ type User struct {
 	Roles    []string `json:"roles" binding:"required" validate:"required"`
 	FullName string   `json:"fullName" binding:"required" minimum:"5" maximum:"150" default:"test" validate:"required,min=3,max=150"`
 }
-
-type UpdateInfo struct {
-	Login    string `json:"login"  minimum:"5" maximum:"40" default:"test" validate:"required,min=3,max=40"`
-	Email    string `json:"email"  maximum:"255"  default:"test@test.com" validate:"required,email"`
-	FullName string `json:"fullName"  minimum:"5" maximum:"150" default:"test" validate:"required,min=3,max=150"`
-}
