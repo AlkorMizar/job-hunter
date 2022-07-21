@@ -10,6 +10,7 @@ import (
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/AlkorMizar/job-hunter/pkg/service"
+	"github.com/AlkorMizar/job-hunter/pkg/service/mock"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -27,75 +28,80 @@ func TestRegisterHandler(t *testing.T) {
 		{
 			"ok",
 			model.NewUser{
-				Login:     "root",
-				Email:     "root@root.com",
-				Password:  "root1",
-				CPassword: "root1",
-				Roles:     []string{"mod"},
+				Login:    "root",
+				Email:    "root@root.com",
+				Password: "root1",
+				Roles:    []string{"mod"},
 			},
 			http.StatusOK,
 		},
 		{
 			"incorrect login",
 			model.NewUser{
-				Login:     "ro",
-				Email:     "root@root.com",
-				Password:  "root1",
-				CPassword: "root1",
-				Roles:     []string{"mod"},
+				Login:    "ro",
+				Email:    "root@root.com",
+				Password: "root1",
+				Roles:    []string{"mod"},
 			},
 			http.StatusBadRequest,
 		},
 		{
 			"incorrect email",
 			model.NewUser{
-				Login:     "ro",
-				Email:     "root@root",
-				Password:  "root1",
-				CPassword: "root1",
-				Roles:     []string{"mod"},
+				Login:    "ro",
+				Email:    "root@root",
+				Password: "root1",
+				Roles:    []string{"mod"},
 			},
 			http.StatusBadRequest,
 		},
 		{
 			"incorrect password",
 			model.NewUser{
-				Login:     "root",
-				Email:     "root@root.com",
-				Password:  "root",
-				CPassword: "root",
-				Roles:     []string{"mod"},
+				Login:    "root",
+				Email:    "root@root.com",
+				Password: "root",
+				Roles:    []string{"mod"},
 			},
 			http.StatusBadRequest,
 		},
 		{
 			"incorrect confirm password",
 			model.NewUser{
-				Login:     "root",
-				Email:     "root@root.com",
-				Password:  "root1",
-				CPassword: "root2",
-				Roles:     []string{"mod"},
+				Login:    "root",
+				Email:    "root@root.com",
+				Password: "root1",
+				Roles:    []string{"mod"},
 			},
 			http.StatusBadRequest,
 		},
 		{
 			"internal error(not unique)",
 			model.NewUser{
-				Login:     notUniqueLogin,
-				Email:     "root@root.com",
-				Password:  "root1",
-				CPassword: "root1",
-				Roles:     []string{"mod"},
+				Login:    notUniqueLogin,
+				Email:    "root@root.com",
+				Password: "root1",
+				Roles:    []string{"mod"},
 			},
 			http.StatusInternalServerError,
 		},
 	}
 
+	service := &service.Service{
+		Authorization: &mock.AuthServiceMock{
+			MockCreateUser: func(newUser *model.NewUser) error {
+				if newUser.Login == notUniqueLogin {
+					return fmt.Errorf("Internal error")
+				}
+				return nil
+			},
+		},
+	}
+	handler := Handler{service}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			services := &service.Service{Authorization: &userManagServiceMock{}}
-			handler := Handler{services}
+
 			body, err := json.Marshal(test.newUser)
 
 			if err != nil {
@@ -170,10 +176,13 @@ func TestAuthHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			services := &service.Service{Authorization: &userManagServiceMock{
-				mockCreateToken: test.mock,
-			}}
-			handler := Handler{services}
+
+			service := &service.Service{
+				Authorization: &mock.AuthServiceMock{
+					MockCreateToken: test.mock,
+				},
+			}
+			handler := Handler{service}
 			body, err := json.Marshal(test.authInfo)
 
 			if err != nil {
@@ -186,7 +195,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			rr := httptest.NewRecorder()
-			reg := http.HandlerFunc(handler.authorize)
+			reg := http.HandlerFunc(handler.authenticate)
 
 			reg.ServeHTTP(rr, req)
 
@@ -224,24 +233,4 @@ func TestAuthHandler(t *testing.T) {
 			}
 		})
 	}
-}
-
-type userManagServiceMock struct {
-	mockCreateToken func(model.AuthInfo) (string, error)
-}
-
-func (s *userManagServiceMock) CreateUser(newUser *model.NewUser) error {
-	if newUser.Login == notUniqueLogin {
-		return fmt.Errorf("Not unique")
-	}
-
-	return nil
-}
-
-func (s *userManagServiceMock) CreateToken(authInfo model.AuthInfo) (string, error) {
-	return s.mockCreateToken(authInfo)
-}
-
-func (s *userManagServiceMock) ParseToken(tokenStr string) (id int, role map[string]struct{}, err error) {
-	return 0, nil, nil
 }
