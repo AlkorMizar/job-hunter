@@ -66,16 +66,6 @@ func TestRegisterHandler(t *testing.T) {
 			http.StatusBadRequest,
 		},
 		{
-			"incorrect confirm password",
-			model.NewUser{
-				Login:    "root",
-				Email:    "root@root.com",
-				Password: "root1",
-				Roles:    []string{"mod"},
-			},
-			http.StatusBadRequest,
-		},
-		{
 			"internal error(not unique)",
 			model.NewUser{
 				Login:    notUniqueLogin,
