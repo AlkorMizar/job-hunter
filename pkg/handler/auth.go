@@ -55,9 +55,12 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+<<<<<<< HEAD
 	w.Header().Set("Content-Type", "application/json")
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> parent of 3883e6b (get request handler #12)
 	_, _ = io.WriteString(w, `user created`)
 =======
 
@@ -121,6 +124,20 @@ func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func writeErrResp(w http.ResponseWriter, mess string, status int) {
+	body := model.JSONResult{
+		Message: mess,
+	}
+
+	w.WriteHeader(status)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
