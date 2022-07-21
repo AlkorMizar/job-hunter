@@ -7,7 +7,7 @@ type UserManagment interface {
 	GetUser(email string) (User, error)
 	GetRoles(user *User) (map[string]struct{}, error)
 	SetRoles(user *User) error
-	GetUserFromId(id int) (user *User, err error)
+	GetUserFromId(id int) (user User, err error)
 }
 
 type Repository struct {
