@@ -34,9 +34,3 @@ type UpdateInfo struct {
 	Email    string `json:"email" default:"test@test.com" validate:"required_without_all=Login FullName,omitempty,email"`
 	FullName string `json:"fullName" default:"test" validate:"required_without_all=Login Email,omitempty,min=3,max=150"`
 }
-
-type Passwords struct {
-	CurrPassword string `json:"CurrPasswoord" binding:"required"  minimum:"5" maximum:"40" default:"test1" validate:"required,min=5,max=40,excludesall= "`
-	NewPassword  string `json:"NewPassword" binding:"required"  minimum:"5" maximum:"40" default:"test1" validate:"required,min=5,max=40,eqfield=CPassword,excludesall= "`
-	CPassword    string `json:"CPassword" binding:"required"  minimum:"5" maximum:"40" default:"test1" validate:"required,min=5,max=40,excludesall= "`
-}
