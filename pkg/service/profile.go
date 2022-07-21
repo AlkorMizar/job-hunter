@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
 	"github.com/AlkorMizar/job-hunter/pkg/repository"
 )
 
@@ -15,6 +14,6 @@ func NewUserServ(repo repository.UserManagment) *UserServ {
 	}
 }
 
-func (u *UserServ) GetUser(id int) (user *model.User, err error) {
-	return &model.User{}, nil
+func (u *UserServ) GetUser(id int) (user *repository.User, err error) {
+	return &repository.User{}, nil
 }

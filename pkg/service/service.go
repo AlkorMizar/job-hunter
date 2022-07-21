@@ -12,7 +12,7 @@ type Authorization interface {
 }
 
 type User interface {
-	GetUser(id int) (user *model.User, err error)
+	GetUser(id int) (user *repository.User, err error)
 }
 
 type Service struct {
