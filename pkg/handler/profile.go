@@ -109,7 +109,7 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 // @Success      200  		{object}   model.JSONResult
 // @Failure      404  		{object}   model.JSONResult
 // @Failure      500  		{object}   model.JSONResult
-// @Router       /user/password [put]
+// @Router       /user [put]
 func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
 	userInf, ok := r.Context().Value(KeyUserInfo).(userInfo)
 	if !ok {

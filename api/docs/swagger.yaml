@@ -49,28 +49,6 @@ definitions:
     - password
     - roles
     type: object
-  model.Passwords:
-    properties:
-      CPassword:
-        default: test1
-        maxLength: 40
-        minLength: 5
-        type: string
-      CurrPasswoord:
-        default: test1
-        maxLength: 40
-        minLength: 5
-        type: string
-      NewPassword:
-        default: test1
-        maxLength: 40
-        minLength: 5
-        type: string
-    required:
-    - CPassword
-    - CurrPasswoord
-    - NewPassword
-    type: object
   model.Token:
     properties:
       token:
@@ -247,38 +225,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Updates User
-      tags:
-      - user
-  /user/password:
-    put:
-      consumes:
-      - application/json
-      description: user can update his password if he has his current password
-      parameters:
-      - description: current,new and confirm passwords
-        in: body
-        name: newInfo
-        required: true
-        schema:
-          $ref: '#/definitions/model.Passwords'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.JSONResult'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/model.JSONResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.JSONResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Updates Users' password
       tags:
       - user
 securityDefinitions:
