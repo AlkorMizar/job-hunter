@@ -7,5 +7,5 @@ type UserServiceMock struct {
 }
 
 func (u *UserServiceMock) GetUser(id int) (user *model.User, err error) {
-	return u.MockGetUser(id)
+	return &model.User{}, nil
 }
