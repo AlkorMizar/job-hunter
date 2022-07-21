@@ -189,7 +189,7 @@ func TestUpdateUser(t *testing.T) {
 				make(map[string]struct{}),
 			},
 			model.UpdateInfo{
-				Login: "l o", Email: "tesd@fsd.com",
+				Login: "lo", Email: "tesd@fsd.com",
 			},
 			func(id int, inf model.UpdateInfo) error {
 				return fmt.Errorf("bad request body")
@@ -231,18 +231,6 @@ func TestUpdateUser(t *testing.T) {
 				make(map[string]struct{}),
 			},
 			model.UpdateInfo{},
-			func(id int, inf model.UpdateInfo) error {
-				return fmt.Errorf("bad request body")
-			},
-			http.StatusBadRequest,
-		},
-		{
-			"bad request body, spaces",
-			userInfo{
-				1,
-				make(map[string]struct{}),
-			},
-			model.UpdateInfo{FullName: "     "},
 			func(id int, inf model.UpdateInfo) error {
 				return fmt.Errorf("bad request body")
 			},
