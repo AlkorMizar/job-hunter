@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
+	"github.com/AlkorMizar/job-hunter/internal/handler/model"
 )
 
 // @Summary      Registration

@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
+	"github.com/AlkorMizar/job-hunter/internal/handler/model"
 )
 
 type AuthServiceMock struct {

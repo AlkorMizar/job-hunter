@@ -1,11 +1,11 @@
-package service
+package services
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
-	"github.com/AlkorMizar/job-hunter/pkg/repository"
+	"github.com/AlkorMizar/job-hunter/internal/handler/model"
+	"github.com/AlkorMizar/job-hunter/internal/repository"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )

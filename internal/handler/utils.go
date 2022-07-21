@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
+	"github.com/AlkorMizar/job-hunter/internal/handler/model"
 	"github.com/go-playground/validator"
 )
 

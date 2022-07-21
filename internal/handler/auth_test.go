@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
-	"github.com/AlkorMizar/job-hunter/pkg/service"
-	"github.com/AlkorMizar/job-hunter/pkg/service/mock"
+	"github.com/AlkorMizar/job-hunter/internal/handler/model"
+	"github.com/AlkorMizar/job-hunter/internal/services"
+	"github.com/AlkorMizar/job-hunter/internal/services/mock"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -77,7 +77,7 @@ func TestRegisterHandler(t *testing.T) {
 		},
 	}
 
-	service := &service.Service{
+	service := &services.Service{
 		Authorization: &mock.AuthServiceMock{
 			MockCreateUser: func(newUser *model.NewUser) error {
 				if newUser.Login == notUniqueLogin {
@@ -167,7 +167,7 @@ func TestAuthHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			service := &service.Service{
+			service := &services.Service{
 				Authorization: &mock.AuthServiceMock{
 					MockCreateToken: test.mock,
 				},

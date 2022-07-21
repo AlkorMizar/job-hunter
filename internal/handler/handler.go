@@ -4,16 +4,16 @@ import (
 	"net/http"
 
 	_ "github.com/AlkorMizar/job-hunter/api/docs" //nolint:blank-imports // for swagger documentation page
-	"github.com/AlkorMizar/job-hunter/pkg/service"
+	"github.com/AlkorMizar/job-hunter/internal/services"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Handler struct {
-	services *service.Service
+	services *services.Service
 }
 
-func NewHandler(serv *service.Service) *Handler {
+func NewHandler(serv *services.Service) *Handler {
 	return &Handler{services: serv}
 }
 

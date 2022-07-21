@@ -1,8 +1,8 @@
-package service
+package services
 
 import (
-	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
-	"github.com/AlkorMizar/job-hunter/pkg/repository"
+	"github.com/AlkorMizar/job-hunter/internal/handler/model"
+	"github.com/AlkorMizar/job-hunter/internal/repository"
 )
 
 type Authorization interface {

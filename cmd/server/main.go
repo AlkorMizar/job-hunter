@@ -4,10 +4,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/AlkorMizar/job-hunter/pkg"
-	"github.com/AlkorMizar/job-hunter/pkg/handler"
-	"github.com/AlkorMizar/job-hunter/pkg/repository"
-	"github.com/AlkorMizar/job-hunter/pkg/service"
+	"github.com/AlkorMizar/job-hunter/internal/handler"
+	"github.com/AlkorMizar/job-hunter/internal/repository"
+	"github.com/AlkorMizar/job-hunter/internal/server"
+	"github.com/AlkorMizar/job-hunter/internal/services"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
@@ -48,12 +48,12 @@ func main() {
 
 	repo := repository.NewRepository(db)
 
-	srv := service.NewService(repo)
+	service := services.NewService(repo)
 
-	router := handler.NewHandler(srv)
+	router := handler.NewHandler(service)
 
-	server := pkg.NewServer(viper.GetString("adr.host"), viper.GetString("adr.port"), router.InitRoutes())
-	if err := server.Run(); err != nil {
+	srv := server.NewServer(viper.GetString("adr.host"), viper.GetString("adr.port"), router.InitRoutes())
+	if err := srv.Run(); err != nil {
 		log.Fatalf("error ocured during run %s", err.Error())
 	}
 }
