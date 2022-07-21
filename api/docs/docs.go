@@ -120,55 +120,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/user": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Returns users' login, email, full name",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Get User",
-                "responses": {
-                    "200": {
-                        "description": "login, email, full name",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/model.JSONResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.User"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/model.JSONResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.JSONResult"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -243,39 +194,6 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "type": "string"
-                }
-            }
-        },
-        "model.User": {
-            "type": "object",
-            "required": [
-                "email",
-                "fullName",
-                "login",
-                "roles"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "default": "test@test.com"
-                },
-                "fullName": {
-                    "type": "string",
-                    "default": "test",
-                    "maxLength": 150,
-                    "minLength": 3
-                },
-                "login": {
-                    "type": "string",
-                    "default": "test",
-                    "maxLength": 40,
-                    "minLength": 3
-                },
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         }
