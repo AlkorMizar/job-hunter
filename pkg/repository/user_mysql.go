@@ -194,7 +194,7 @@ func (r *UserManagMysql) GetUserById(id int) (User, error) {
 func (r *UserManagMysql) SetPassword(id int, pwd []byte) error {
 	query := "UPDATE user SET password=? WHERE idUser=?"
 
-	res, err := r.db.Exec(query, pwd, id)
+	res, err := r.db.Exec(query, id)
 
 	if err != nil {
 		return err
