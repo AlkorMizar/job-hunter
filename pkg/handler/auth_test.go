@@ -186,7 +186,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			rr := httptest.NewRecorder()
-			reg := http.HandlerFunc(handler.authenticate)
+			reg := http.HandlerFunc(handler.authorize)
 
 			reg.ServeHTTP(rr, req)
 

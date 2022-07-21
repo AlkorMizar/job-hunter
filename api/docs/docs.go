@@ -19,7 +19,7 @@ const docTemplate = `{
     "paths": {
         "/auth": {
             "post": {
-                "description": "If user exists returns JWT token",
+                "description": "if user exists sets cookie with JWT token",
                 "consumes": [
                     "application/json"
                 ],
@@ -29,7 +29,7 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Authentication",
+                "summary": "Authorization",
                 "parameters": [
                     {
                         "description": "Email and password",
@@ -77,7 +77,7 @@ const docTemplate = `{
         },
         "/reg": {
             "post": {
-                "description": "Creates new user if unique login and email",
+                "description": "creates new user if unique login and email",
                 "consumes": [
                     "application/json"
                 ],

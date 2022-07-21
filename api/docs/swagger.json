@@ -12,7 +12,7 @@
     "paths": {
         "/auth": {
             "post": {
-                "description": "If user exists returns JWT token",
+                "description": "if user exists sets cookie with JWT token",
                 "consumes": [
                     "application/json"
                 ],
@@ -22,7 +22,7 @@
                 "tags": [
                     "auth"
                 ],
-                "summary": "Authentication",
+                "summary": "Authorization",
                 "parameters": [
                     {
                         "description": "Email and password",
@@ -70,7 +70,7 @@
         },
         "/reg": {
             "post": {
-                "description": "Creates new user if unique login and email",
+                "description": "creates new user if unique login and email",
                 "consumes": [
                     "application/json"
                 ],
