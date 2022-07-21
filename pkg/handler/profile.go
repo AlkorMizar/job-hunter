@@ -8,11 +8,11 @@ import (
 )
 
 // @Summary      Get User
-// @Description  Returns users' login, email, full name,roles
+// @Description  Returns users' login, email, full name
 // @Security     ApiKeyAuth
 // @Tags         user
 // @Produce      json
-// @Success      200  {object}  model.JSONResult{data=model.User} "login, email, full name,roles"
+// @Success      200  {object}  model.JSONResult{data=model.User} "login, email, full name"
 // @Failure      404  {object}  model.JSONResult
 // @Failure      500  {object}  model.JSONResult
 // @Router       /user [get]
@@ -42,18 +42,4 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-}
-
-// @Summary      Updates User
-// @Description  Changes users' login, email, full name
-// @Security     ApiKeyAuth
-// @Tags         user
-// @Produce      json
-// @Param        newInfo    body 	   model.UpdateInfo true "Login, email, full name"
-// @Success      200  		{object}   model.JSONResult
-// @Failure      404  		{object}   model.JSONResult
-// @Failure      500  		{object}   model.JSONResult
-// @Router       /user [put]
-func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
-
 }

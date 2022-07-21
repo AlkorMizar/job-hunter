@@ -35,7 +35,6 @@ func (h *Handler) InitRoutes() *mux.Router {
 
 	auth.Use(h.authentication)
 	auth.HandleFunc("/user", h.getUser).Methods(http.MethodGet)
-	auth.HandleFunc("/user", h.updateUser).Methods(http.MethodPut)
 
 	return r
 }
