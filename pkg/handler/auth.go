@@ -23,7 +23,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
 	if err := getFromBody(r, &newUser); err != nil {
 		log.Print(err)
-		writeErrResp(w, err.Error(), http.StatusBadRequest)
+		writeErrResp(w, "incorrect fields", http.StatusBadRequest)
 
 		return
 	}
@@ -63,7 +63,7 @@ func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
 
 	if err := getFromBody(r, &authInfo); err != nil {
 		log.Print(err)
-		writeErrResp(w, err.Error(), http.StatusBadRequest)
+		writeErrResp(w, "incorrect fields", http.StatusBadRequest)
 
 		return
 	}

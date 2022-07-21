@@ -67,60 +67,6 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	var update model.UpdateInfo
 
 	if err := getFromBody(r, &update); err != nil {
-		writeErrResp(w, err.Error(), http.StatusBadRequest)
-
-		return
-	}
-
-	if update.FullName != "" {
-		update.FullName = strings.TrimSpace(update.FullName)
-		if update.FullName == "" {
-			writeErrResp(w, "full name empty", http.StatusBadRequest)
-
-			return
-		}
-	}
-
-	if err := h.services.UpdateUser(userInf.id, update); err != nil {
-		writeErrResp(w, "internal error", http.StatusInternalServerError)
-
-		return
-	}
-
-	body := model.JSONResult{
-		Message: "Successfully authorized",
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-
-	if err := json.NewEncoder(w).Encode(body); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-// @Summary      Updates Users' password
-// @Description  user can update his password if he has his current password
-// @Security     ApiKeyAuth
-// @Tags         user
-// @Accept       json
-// @Produce      json
-// @Param        newInfo    body 	   model.Passwords true "current,new and confirm passwords"
-// @Success      200  		{object}   model.JSONResult
-// @Failure      404  		{object}   model.JSONResult
-// @Failure      500  		{object}   model.JSONResult
-// @Router       /user [put]
-func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
-	userInf, ok := r.Context().Value(KeyUserInfo).(userInfo)
-	if !ok {
-		writeErrResp(w, "users' info is invalid", http.StatusBadRequest)
-
-		return
-	}
-
-	var passwords model.Passwords
-
-	if err := getFromBody(r, &passwords); err != nil {
 		writeErrResp(w, "incorrect data format", http.StatusBadRequest)
 
 		return
