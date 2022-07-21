@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/AlkorMizar/job-hunter/pkg/handler/model"
+	"github.com/go-playground/validator"
 )
 
 // @Summary      Registration
@@ -19,16 +20,33 @@ import (
 // @Failure      500  {object}  model.JSONResult
 // @Router       /reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
+	validate := validator.New()
+
+	decoder := json.NewDecoder(r.Body)
+
 	var newUser model.NewUser
 
-	if err := getFromBody(r, &newUser); err != nil {
+	err := decoder.Decode(&newUser)
+
+	if err != nil {
+		log.Print(err)
+		writeErrResp(w, "incorrect data format", http.StatusBadRequest)
+
+		return
+	}
+
+	err = validate.Struct(newUser)
+
+	if err != nil {
 		log.Print(err)
 		writeErrResp(w, "incorrect fields", http.StatusBadRequest)
 
 		return
 	}
 
-	if err := h.services.Authorization.CreateUser(&newUser); err != nil {
+	err = h.services.Authorization.CreateUser(&newUser)
+
+	if err != nil {
 		log.Print(err)
 		writeErrResp(w, "internal error", http.StatusInternalServerError)
 
@@ -59,9 +77,24 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  model.JSONResult
 // @Router       /auth [post]
 func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
+	validate := validator.New()
+
+	decoder := json.NewDecoder(r.Body)
+
 	var authInfo model.AuthInfo
 
-	if err := getFromBody(r, &authInfo); err != nil {
+	err := decoder.Decode(&authInfo)
+
+	if err != nil {
+		log.Print(err)
+		writeErrResp(w, "incorrect data format", http.StatusBadRequest)
+
+		return
+	}
+
+	err = validate.Struct(authInfo)
+
+	if err != nil {
 		log.Print(err)
 		writeErrResp(w, "incorrect fields", http.StatusBadRequest)
 
