@@ -56,11 +56,14 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	w.Header().Set("Content-Type", "application/json")
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> parent of 3883e6b (get request handler #12)
+=======
+>>>>>>> parent of c307fa8 (Header set in registration)
 	_, _ = io.WriteString(w, `user created`)
 =======
 
