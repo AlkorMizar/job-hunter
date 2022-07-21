@@ -350,7 +350,7 @@ func TestUpdatePassword(t *testing.T) {
 			"ok",
 			uInfo,
 			model.Passwords{
-				CurrPassword: "test1",
+				CurrPassword: "test",
 				NewPassword:  "test2",
 				CPassword:    "test2",
 			},
@@ -363,9 +363,9 @@ func TestUpdatePassword(t *testing.T) {
 			"incorrect format of new password(empty)",
 			uInfo,
 			model.Passwords{
-				CurrPassword: "test1",
-				NewPassword:  "     ",
-				CPassword:    "     ",
+				CurrPassword: "test",
+				NewPassword:  "   ",
+				CPassword:    "   ",
 			},
 			func(int, model.Passwords) error {
 				return fmt.Errorf("incorrect new password")
@@ -376,7 +376,7 @@ func TestUpdatePassword(t *testing.T) {
 			"incorrect format of new password(less then min)",
 			uInfo,
 			model.Passwords{
-				CurrPassword: "test1",
+				CurrPassword: "test",
 				NewPassword:  "1 ",
 				CPassword:    "1 ",
 			},
@@ -389,9 +389,9 @@ func TestUpdatePassword(t *testing.T) {
 			"new and confirm not the same",
 			uInfo,
 			model.Passwords{
-				CurrPassword: "test1",
-				NewPassword:  "test2",
-				CPassword:    "test3",
+				CurrPassword: "test",
+				NewPassword:  "test1",
+				CPassword:    "test2",
 			},
 			func(int, model.Passwords) error {
 				return fmt.Errorf("incorrect new password")
@@ -402,9 +402,9 @@ func TestUpdatePassword(t *testing.T) {
 			"wrong current password",
 			uInfo,
 			model.Passwords{
-				CurrPassword: "wronged",
+				CurrPassword: "wrong",
 				NewPassword:  "test1",
-				CPassword:    "test1",
+				CPassword:    "test2",
 			},
 			func(int, model.Passwords) error {
 				return fmt.Errorf("internal error")
