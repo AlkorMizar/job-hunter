@@ -37,12 +37,5 @@ func (u *UserServ) GetUser(id int) (*model.User, error) {
 }
 
 func (u *UserServ) UpdateUser(id int, inf model.UpdateInfo) error {
-
-	user := &repository.User{
-		Login:    inf.Login,
-		Email:    inf.Email,
-		FullName: inf.FullName,
-	}
-
-	return u.repo.UpdateUserStr(id, user)
+	return nil
 }
