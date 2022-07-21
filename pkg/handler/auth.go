@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 
@@ -53,13 +54,9 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := model.JSONResult{
-		Message: "Successfully authorized",
-		Data:    nil,
-	}
-
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+<<<<<<< HEAD
 <<<<<<< HEAD
 	_, _ = io.WriteString(w, `user created`)
 =======
@@ -68,6 +65,9 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 >>>>>>> 64981498c71ed2b0e99f0cbf40d29b02705ad0ea
+=======
+	_, _ = io.WriteString(w, `user created`)
+>>>>>>> parent of 6498149 (writeErrResp placed in handler)
 }
 
 // @Summary      Authentication
