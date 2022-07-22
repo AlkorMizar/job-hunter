@@ -20,3 +20,8 @@ type JSONResult struct {
 type Token struct {
 	Token string `json:"token"`
 }
+
+type UserInfo struct {
+	ID    int                 `json:"userId"`
+	Roles map[string]struct{} `json:"roles"`
+}
