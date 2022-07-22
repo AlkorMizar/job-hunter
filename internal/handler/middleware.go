@@ -6,11 +6,6 @@ import (
 	"strings"
 )
 
-type userInfo struct {
-	id    int
-	roles map[string]struct{}
-}
-
 type ctxKey string
 
 var KeyUserInfo = ctxKey("userInfo")
@@ -43,13 +38,13 @@ func (h *Handler) authentication(next http.Handler) http.Handler {
 
 		accessToken := fields[1]
 
-		id, roles, err := h.services.Authorization.ParseToken(accessToken)
+		userInfo, err := h.services.Authorization.ParseToken(accessToken)
 		if err != nil {
 			http.Error(w, "Forbidden, please authorize again", http.StatusForbidden)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), KeyUserInfo, userInfo{id, roles})
+		ctx := context.WithValue(r.Context(), KeyUserInfo, userInfo)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

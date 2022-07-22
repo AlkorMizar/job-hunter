@@ -8,7 +8,7 @@ import (
 type Authorization interface {
 	CreateUser(newUser *model.NewUser) error
 	CreateToken(authInfo model.AuthInfo) (string, error)
-	ParseToken(tokenStr string) (int, map[string]struct{}, error)
+	ParseToken(tokenStr string) (model.UserInfo, error)
 }
 
 type Service struct {

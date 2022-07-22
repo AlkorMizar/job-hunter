@@ -14,6 +14,7 @@ import (
 const (
 	bcryptCost = 8
 	tokenTTL   = 3 * time.Hour
+	issuer     = "job-hunter"
 )
 
 var signingKey = []byte("dontforgettochange")
@@ -25,8 +26,7 @@ var (
 )
 
 type Claims struct {
-	UserID int                 `json:"userId"`
-	Roles  map[string]struct{} `json:"roles"`
+	model.UserInfo
 	jwt.RegisteredClaims
 }
 
@@ -81,12 +81,14 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
 
 	// Create the Claims
 	claims := &Claims{
-		UserID: user.ID,
-		Roles:  user.Roles,
+		UserInfo: model.UserInfo{
+			ID:    user.ID,
+			Roles: user.Roles,
+		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    "api_token",
+			Issuer:    issuer,
 		},
 	}
 
@@ -96,10 +98,10 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
 	return token.SignedString(signingKey)
 }
 
-func (s *AuthService) ParseToken(tokenStr string) (id int, roles map[string]struct{}, err error) {
+func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("during ParseToken: %w", err)
+			err = fmt.Errorf("during ParseToken %w", err)
 		}
 	}()
 
@@ -110,18 +112,17 @@ func (s *AuthService) ParseToken(tokenStr string) (id int, roles map[string]stru
 	if !token.Valid {
 		if ve, ok := err.(*jwt.ValidationError); ok {
 			if ve.Errors&jwt.ValidationErrorExpired != 0 {
-				return 0, nil, ErrExpiredToken
+				return model.UserInfo{}, ErrExpiredToken
 			}
 		}
-		return 0, nil, ErrTokenInvalid
+		return model.UserInfo{}, ErrTokenInvalid
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
-		return 0, nil, ErrClaimsInvald
+		return model.UserInfo{}, ErrClaimsInvald
 	}
 
-	id = claims.UserID
-	roles = claims.Roles
-	return id, roles, nil
+	info = claims.UserInfo
+	return info, nil
 }

@@ -17,6 +17,6 @@ func (s *AuthServiceMock) CreateToken(authInfo model.AuthInfo) (string, error) {
 	return s.MockCreateToken(authInfo)
 }
 
-func (s *AuthServiceMock) ParseToken(tokenStr string) (id int, role map[string]struct{}, err error) {
-	return 0, nil, nil
+func (s *AuthServiceMock) ParseToken(tokenStr string) (uInfo model.UserInfo, err error) {
+	return uInfo, nil
 }
