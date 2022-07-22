@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -16,6 +17,12 @@ const (
 )
 
 var signingKey = []byte("dontforgettochange")
+
+var (
+	ErrExpiredToken = errors.New("token expired")
+	ErrTokenInvalid = errors.New("token has invalid format or couldn't handle it")
+	ErrClaimsInvald = errors.New("claims invalid")
+)
 
 type Claims struct {
 	UserID int                 `json:"userId"`
@@ -40,12 +47,11 @@ func (s *AuthService) CreateUser(newUser *model.NewUser) error {
 		return err
 	}
 
-	/////////////////////////////////////////
+	//TODO: maybe move to func
 	roles := make(map[string]struct{})
 	for _, v := range newUser.Roles {
 		roles[v] = struct{}{}
 	}
-	////////////////////////////////////////
 
 	user := repository.User{
 		Login:    newUser.Login,
@@ -91,17 +97,31 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
 }
 
 func (s *AuthService) ParseToken(tokenStr string) (id int, roles map[string]struct{}, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("during ParseToken: %w", err)
+		}
+	}()
+
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return signingKey, nil
 	})
 
-	if err != nil {
-		return 0, nil, err
+	if !token.Valid {
+		if ve, ok := err.(*jwt.ValidationError); ok {
+			if ve.Errors&jwt.ValidationErrorExpired != 0 {
+				return 0, nil, ErrExpiredToken
+			}
+		}
+		return 0, nil, ErrTokenInvalid
 	}
 
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims.UserID, claims.Roles, nil
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return 0, nil, ErrClaimsInvald
 	}
 
-	return 0, nil, fmt.Errorf("invalid token")
+	id = claims.UserID
+	roles = claims.Roles
+	return id, roles, nil
 }
