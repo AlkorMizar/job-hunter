@@ -17,8 +17,6 @@ const (
 	issuer     = "job-hunter"
 )
 
-var signingKey = []byte("dontforgettochange")
-
 var (
 	ErrExpiredToken = errors.New("token expired")
 	ErrTokenInvalid = errors.New("token has invalid format or couldn't handle it")
@@ -31,12 +29,14 @@ type Claims struct {
 }
 
 type AuthService struct {
-	repo repository.UserManagment
+	repo       repository.UserManagment
+	signingKey []byte
 }
 
-func NewAuthService(repo repository.UserManagment) *AuthService {
+func NewAuthService(repo repository.UserManagment, sKey string) *AuthService {
 	return &AuthService{
-		repo: repo,
+		repo:       repo,
+		signingKey: []byte(sKey),
 	}
 }
 
@@ -95,7 +95,7 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
 	// Declare the token with the algorithm used for signing, and the claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	return token.SignedString(signingKey)
+	return token.SignedString(s.signingKey)
 }
 
 func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err error) {
@@ -106,7 +106,7 @@ func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err erro
 	}()
 
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return signingKey, nil
+		return s.signingKey, nil
 	})
 
 	if !token.Valid {

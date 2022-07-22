@@ -48,7 +48,7 @@ func main() {
 
 	repo := repository.NewRepository(db)
 
-	service := services.NewService(repo)
+	service := services.NewService(repo, os.Getenv("SIGNING_KEY"))
 
 	router := handler.NewHandler(service)
 
