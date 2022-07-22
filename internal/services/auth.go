@@ -109,7 +109,7 @@ func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err erro
 		return s.signingKey, nil
 	})
 
-	if !token.Valid {
+	if err != nil {
 		if ve, ok := err.(*jwt.ValidationError); ok {
 			if ve.Errors&jwt.ValidationErrorExpired != 0 {
 				return model.UserInfo{}, ErrExpiredToken
