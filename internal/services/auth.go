@@ -12,7 +12,7 @@ import (
 
 const (
 	bcryptCost = 8
-	tokenTTL   = 15 * time.Minute
+	tokenTTL   = 3 * time.Hour
 )
 
 var signingKey = []byte("dontforgettochange")
