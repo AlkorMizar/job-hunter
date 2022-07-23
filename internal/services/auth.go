@@ -7,6 +7,7 @@ import (
 
 	"github.com/AlkorMizar/job-hunter/internal/handler/model"
 	"github.com/AlkorMizar/job-hunter/internal/repository"
+	"github.com/AlkorMizar/job-hunter/internal/util"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -69,14 +70,16 @@ func (s *AuthService) CreateUser(newUser *model.NewUser) (err error) {
 	return s.repo.CreateUser(&user)
 }
 
-func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
-	user, err := s.repo.GetUser(authInfo.Email)
+func (s *AuthService) CreateToken(authInfo model.AuthInfo) (token string, err error) {
+	defer util.Wrap(&err, "in CreateToken")
+
+	user, err := s.repo.GetUserWithEamil(authInfo.Email)
 	if err != nil {
 		return "", err
 	}
 
-	if e := bcrypt.CompareHashAndPassword(user.Password, []byte(authInfo.Password)); e != nil {
-		return "", e
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(authInfo.Password)); err != nil {
+		return "", fmt.Errorf("failed compare passwords of user %d: %w", user.ID, err)
 	}
 
 	user.Roles, err = s.repo.GetRoles(&user)
@@ -98,9 +101,11 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
 	}
 
 	// Declare the token with the algorithm used for signing, and the claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	return token.SignedString(s.signingKey)
+	token, err = jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(s.signingKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign claims with error: %w", err)
+	}
+	return token, err
 }
 
 func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err error) {
