@@ -4,7 +4,7 @@ import "github.com/jmoiron/sqlx"
 
 type UserManagment interface {
 	CreateUser(user *User) error
-	GetUser(email string) (User, error)
+	GetUserWithEamil(email string) (User, error)
 	GetRoles(user *User) (map[string]struct{}, error)
 	SetRoles(user *User) error
 }

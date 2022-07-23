@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/AlkorMizar/job-hunter/internal/util"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -33,45 +34,49 @@ func NewUserManagMsql(db *sqlx.DB) *UserManagMysql {
 	}
 }
 
-func (r *UserManagMysql) CreateUser(user *User) error {
+func (r *UserManagMysql) CreateUser(user *User) (err error) {
+	defer util.Wrap(&err, "in CreateUser")
+
 	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullName)"
 	res, err := r.db.NamedExec(query, user)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to exec query %s with error: %w", query, err)
 	}
 
 	num, err := res.RowsAffected()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("RowsAffected failed with error %w", err)
 	}
 
 	if num != 1 {
-		return fmt.Errorf("couldn't insert")
+		return fmt.Errorf("no data were inserted")
 	}
 
 	return nil
 }
 
-func (r *UserManagMysql) GetUser(email string) (User, error) {
-	var user User
+func (r *UserManagMysql) GetUserWithEamil(email string) (user User, err error) {
+	defer util.Wrap(&err, "in GetUserWithEamil")
 
 	query := "SELECT * FROM user WHERE email=?"
 
-	err := r.db.Get(&user, query, email)
+	err = r.db.Get(&user, query, email)
 
 	return user, err
 }
 
-func (r *UserManagMysql) GetRoles(user *User) (map[string]struct{}, error) {
-	roles := make(map[string]struct{})
+func (r *UserManagMysql) GetRoles(user *User) (roles map[string]struct{}, err error) {
+	defer util.Wrap(&err, "in GetRoles")
+
+	roles = make(map[string]struct{})
 	rolesArr := []Role{}
 	query := "SELECT role.name from role JOIN user_has_role ON User_idUser=? AND Role_idRole=idRole; "
-	err := r.db.Select(&rolesArr, query, user.ID)
+	err = r.db.Select(&rolesArr, query, user.ID)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to select with error: %w", err)
 	}
 
 	for _, v := range rolesArr {
@@ -82,40 +87,42 @@ func (r *UserManagMysql) GetRoles(user *User) (map[string]struct{}, error) {
 }
 
 func (r *UserManagMysql) SetRoles(user *User) (err error) {
+	defer util.Wrap(&err, "in SetRoles")
+
 	tx, err := r.db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed r.db.Begin with error: %w", err)
 	}
 
 	_, err = tx.Exec(`DELETE FROM user_has_role WHERE User_idUser=?`, user.ID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed exec DELETE query with error: %w", err)
 	}
 
 	for k := range user.Roles {
-		res, e := tx.Exec(`
+		res, err := tx.Exec(`
 		insert into user_has_role (User_idUser, Role_idRole)
 		select ?, idRole from role
 		where name = ?;`, user.ID, k)
-		if e != nil {
-			return e
+		if err != nil {
+			return fmt.Errorf("failed exec INSERT query with error: %w", err)
 		}
 
-		num, e := res.RowsAffected()
+		num, err := res.RowsAffected()
 
-		if e != nil {
-			return e
+		if err != nil {
+			return fmt.Errorf("RowsAffected failed with error %w", err)
 		}
 
 		if num != 1 {
-			return fmt.Errorf("couldn't insert")
+			return fmt.Errorf("no data were inserted")
 		}
 	}
 
 	defer func() {
 		e := tx.Commit()
-		if e != nil {
-			err = e
+		if e != nil && err == nil {
+			err = fmt.Errorf("failed commit with error: %w", e)
 		}
 	}()
 
