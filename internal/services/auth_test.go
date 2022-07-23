@@ -2,6 +2,7 @@ package services_test
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/AlkorMizar/job-hunter/internal/repository/mock"
 	"github.com/AlkorMizar/job-hunter/internal/services"
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -117,11 +119,7 @@ func TestParseToken(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			auth := services.NewAuthService(&mock.UserManagment{
-				MockCreateUser: func(user *repository.User) error {
-					return nil
-				},
-			}, string(signingKey))
+			auth := services.NewAuthService(&mock.UserManagment{}, string(signingKey))
 
 			info, err := auth.ParseToken(test.token())
 
@@ -134,4 +132,71 @@ func TestParseToken(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCreateUSer(t *testing.T) {
+	validNewUser := &model.NewUser{
+		Login:    "login",
+		Email:    "email@gmail.com",
+		Roles:    []string{"role1", "role2"},
+		Password: "password",
+	}
+
+	errAlreadyExists := errors.New("user already exists")
+
+	tests := []struct {
+		name           string
+		newUser        *model.NewUser
+		mockCreateUser func(user *repository.User) error
+		err            error
+	}{
+		{
+			"ok",
+			validNewUser,
+			func(user *repository.User) error {
+				if !compare(validNewUser, user) {
+					return fmt.Errorf("incorrect repository.User data")
+				}
+				return nil
+			},
+			nil,
+		},
+		{
+			"user already exist",
+			validNewUser,
+			func(user *repository.User) error {
+				return errAlreadyExists
+			},
+			errAlreadyExists,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			auth := services.NewAuthService(&mock.UserManagment{
+				MockCreateUser: test.mockCreateUser,
+			}, string(signingKey))
+
+			err := auth.CreateUser(test.newUser)
+
+			if !errors.Is(err, test.err) {
+				t.Fatalf("got %v want %v", err, test.err)
+			}
+		})
+	}
+}
+
+func compare(newUser *model.NewUser, user *repository.User) bool {
+	for _, v := range newUser.Roles {
+		if _, ok := user.Roles[v]; !ok {
+			return false
+		}
+	}
+
+	if e := bcrypt.CompareHashAndPassword(user.Password, []byte(newUser.Password)); e != nil {
+		return false
+	}
+
+	return newUser.Login == user.Login && newUser.Email == user.Email
 }

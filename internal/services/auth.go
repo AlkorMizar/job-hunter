@@ -40,11 +40,16 @@ func NewAuthService(repo repository.UserManagment, sKey string) *AuthService {
 	}
 }
 
-func (s *AuthService) CreateUser(newUser *model.NewUser) error {
-	pwd, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcryptCost)
+func (s *AuthService) CreateUser(newUser *model.NewUser) (err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("in CreateUser: %w", err)
+		}
+	}()
 
+	pwd, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcryptCost)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed generate hash with error: %w", err)
 	}
 
 	//TODO: maybe move to func
@@ -101,7 +106,7 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (string, error) {
 func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("during ParseToken %w", err)
+			err = fmt.Errorf("in ParseToken : %w", err)
 		}
 	}()
 
