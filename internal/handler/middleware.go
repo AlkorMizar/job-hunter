@@ -2,8 +2,11 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/AlkorMizar/job-hunter/internal/services"
 )
 
 type ctxKey string
@@ -40,7 +43,11 @@ func (h *Handler) authentication(next http.Handler) http.Handler {
 
 		userInfo, err := h.services.Authorization.ParseToken(accessToken)
 		if err != nil {
-			http.Error(w, "Forbidden, please authorize again", http.StatusForbidden)
+			if errors.Is(err, services.ErrExpiredToken) {
+				http.Error(w, "Forbidden, please authorize again", http.StatusUnauthorized)
+				return
+			}
+			http.Error(w, "Invalid token", http.StatusForbidden)
 			return
 		}
 

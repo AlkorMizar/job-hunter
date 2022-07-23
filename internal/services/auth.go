@@ -19,9 +19,9 @@ const (
 )
 
 var (
-	ErrExpiredToken = errors.New("token expired")
-	ErrTokenInvalid = errors.New("token has invalid format or couldn't handle it")
-	ErrClaimsInvald = errors.New("claims invalid")
+	ErrExpiredToken  = errors.New("token expired")
+	ErrTokenInvalid  = errors.New("token has invalid format or couldn't handle it")
+	ErrClaimsInvalid = errors.New("claims invalid")
 )
 
 type Claims struct {
@@ -130,7 +130,7 @@ func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err erro
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
-		return model.UserInfo{}, ErrClaimsInvald
+		return model.UserInfo{}, ErrClaimsInvalid
 	}
 
 	info = claims.UserInfo
