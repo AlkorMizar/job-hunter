@@ -20,15 +20,16 @@ const (
 )
 
 var (
-	validUserInf = model.UserInfo{
-		ID:    1,
-		Roles: map[string]struct{}{"role": {}},
-	}
-	invalidUserInf = model.UserInfo{}
-	signingKey     = []byte("testSigningKey")
+	signingKey = []byte("testSigningKey")
 )
 
 func TestParseToken(t *testing.T) {
+
+	validUserInf := model.UserInfo{
+		ID:    1,
+		Roles: map[string]struct{}{"role": {}},
+	}
+	invalidUserInf := model.UserInfo{}
 
 	tests := []struct {
 		name  string
@@ -182,6 +183,150 @@ func TestCreateUSer(t *testing.T) {
 
 			if !errors.Is(err, test.err) {
 				t.Fatalf("got %v want %v", err, test.err)
+			}
+		})
+	}
+}
+
+func TestCreateToken(t *testing.T) {
+	errNotFound := errors.New("not found")
+	errGetRolesFailed := errors.New("faileg GetRoles")
+
+	pwd, _ := bcrypt.GenerateFromPassword([]byte("valid"), 8)
+
+	user := repository.User{
+		ID:       1,
+		Password: pwd,
+	}
+
+	roles := map[string]struct{}{"role1": {}, "role2": {}}
+
+	invalUInfo := model.UserInfo{}
+
+	tests := []struct {
+		name         string
+		authInfo     model.AuthInfo
+		mockGetUser  func(email string) (repository.User, error)
+		mockGetRoles func(user *repository.User) (map[string]struct{}, error)
+		err          error
+		uInfo        model.UserInfo
+	}{
+		{
+			"ok",
+			model.AuthInfo{
+				Email:    "test@gmail.com",
+				Password: "valid",
+			},
+			func(email string) (repository.User, error) {
+				return user, nil
+			},
+			func(user *repository.User) (map[string]struct{}, error) {
+				return roles, nil
+			},
+			nil,
+			model.UserInfo{
+				ID:    user.ID,
+				Roles: roles,
+			},
+		},
+		{
+			"ok,empty roles",
+			model.AuthInfo{
+				Email:    "test@gmail.com",
+				Password: "valid",
+			},
+			func(email string) (repository.User, error) {
+				return user, nil
+			},
+			func(user *repository.User) (map[string]struct{}, error) {
+				return map[string]struct{}{}, nil
+			},
+			nil,
+			model.UserInfo{
+				ID:    user.ID,
+				Roles: map[string]struct{}{},
+			},
+		},
+		{
+			"user not found",
+			model.AuthInfo{
+				Email:    "not@found.com",
+				Password: "valid",
+			},
+			func(email string) (repository.User, error) {
+				return repository.User{}, errNotFound
+			},
+			func(user *repository.User) (map[string]struct{}, error) {
+				return nil, fmt.Errorf("impossible error")
+			},
+			errNotFound,
+			invalUInfo,
+		},
+		{
+			"invalid password",
+			model.AuthInfo{
+				Email:    "test@gmail.com",
+				Password: "invalid",
+			},
+			func(email string) (repository.User, error) {
+				return user, nil
+			},
+			func(user *repository.User) (map[string]struct{}, error) {
+				return nil, fmt.Errorf("impossible error")
+			},
+			bcrypt.ErrMismatchedHashAndPassword,
+			invalUInfo,
+		},
+		{
+			"error in roles",
+			model.AuthInfo{
+				Email:    "test@gmail.com",
+				Password: "valid",
+			},
+			func(email string) (repository.User, error) {
+				return user, nil
+			},
+			func(user *repository.User) (map[string]struct{}, error) {
+				return nil, errGetRolesFailed
+			},
+			errGetRolesFailed,
+			invalUInfo,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			authServ := services.NewAuthService(&mock.UserManagment{
+				MockGetRoles:         test.mockGetRoles,
+				MockGetUserWithEamil: test.mockGetUser,
+			}, string(signingKey))
+
+			tokenStr, err := authServ.CreateToken(test.authInfo)
+
+			if !errors.Is(err, test.err) {
+				t.Fatalf("got %v want %v", err, test.err)
+			}
+
+			if reflect.DeepEqual(test.uInfo, invalUInfo) {
+				return
+			}
+
+			token, err := jwt.ParseWithClaims(tokenStr, &services.Claims{}, func(token *jwt.Token) (interface{}, error) {
+				return signingKey, nil
+			})
+
+			if err != nil {
+				t.Fatalf("got unexpected error %v", err)
+			}
+
+			claims, ok := token.Claims.(*services.Claims)
+			if !ok {
+				t.Fatalf("got unexpected token %v", token)
+			}
+
+			if !reflect.DeepEqual(test.uInfo, claims.UserInfo) {
+				t.Fatalf("got %v want %v", claims.UserInfo, test.uInfo)
 			}
 		})
 	}
