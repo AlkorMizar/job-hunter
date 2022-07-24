@@ -8,8 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AlkorMizar/job-hunter/internal/handler/model"
-	"github.com/AlkorMizar/job-hunter/internal/services"
+	"github.com/AlkorMizar/job-hunter/internal/model/handl"
 	"github.com/AlkorMizar/job-hunter/internal/services/mock"
 	"github.com/mitchellh/mapstructure"
 )
@@ -22,12 +21,12 @@ const (
 func TestRegisterHandler(t *testing.T) {
 	tests := []struct {
 		name               string
-		newUser            model.NewUser
+		newUser            handl.NewUser
 		expectedStatusCode int
 	}{
 		{
 			"ok",
-			model.NewUser{
+			handl.NewUser{
 				Login:    "root",
 				Email:    "root@root.com",
 				Password: "root1",
@@ -37,7 +36,7 @@ func TestRegisterHandler(t *testing.T) {
 		},
 		{
 			"incorrect login",
-			model.NewUser{
+			handl.NewUser{
 				Login:    "ro",
 				Email:    "root@root.com",
 				Password: "root1",
@@ -47,7 +46,7 @@ func TestRegisterHandler(t *testing.T) {
 		},
 		{
 			"incorrect email",
-			model.NewUser{
+			handl.NewUser{
 				Login:    "ro",
 				Email:    "root@root",
 				Password: "root1",
@@ -57,7 +56,7 @@ func TestRegisterHandler(t *testing.T) {
 		},
 		{
 			"incorrect password",
-			model.NewUser{
+			handl.NewUser{
 				Login:    "root",
 				Email:    "root@root.com",
 				Password: "root",
@@ -67,7 +66,7 @@ func TestRegisterHandler(t *testing.T) {
 		},
 		{
 			"internal error(not unique)",
-			model.NewUser{
+			handl.NewUser{
 				Login:    notUniqueLogin,
 				Email:    "root@root.com",
 				Password: "root1",
@@ -77,9 +76,9 @@ func TestRegisterHandler(t *testing.T) {
 		},
 	}
 
-	service := &services.Service{
-		Authorization: &mock.AuthServiceMock{
-			MockCreateUser: func(newUser *model.NewUser) error {
+	handler := Handler{
+		auth: &mock.AuthServiceMock{
+			MockCreateUser: func(newUser *handl.NewUser) error {
 				if newUser.Login == notUniqueLogin {
 					return fmt.Errorf("Internal error")
 				}
@@ -87,7 +86,6 @@ func TestRegisterHandler(t *testing.T) {
 			},
 		},
 	}
-	handler := Handler{service}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -121,18 +119,18 @@ func TestRegisterHandler(t *testing.T) {
 func TestAuthHandler(t *testing.T) {
 	tests := []struct {
 		name               string
-		authInfo           model.AuthInfo
-		mock               func(model.AuthInfo) (string, error)
+		authInfo           handl.AuthInfo
+		mock               func(handl.AuthInfo) (string, error)
 		expectedStatusCode int
 		expectedToken      string
 	}{
 		{
 			"incorrect data",
-			model.AuthInfo{
+			handl.AuthInfo{
 				Email:    "root@.com",
 				Password: "root",
 			},
-			func(model.AuthInfo) (string, error) {
+			func(handl.AuthInfo) (string, error) {
 				return "", nil
 			},
 			http.StatusBadRequest,
@@ -140,11 +138,11 @@ func TestAuthHandler(t *testing.T) {
 		},
 		{
 			"ok",
-			model.AuthInfo{
+			handl.AuthInfo{
 				Email:    "root@root.com",
 				Password: "root1",
 			},
-			func(model.AuthInfo) (string, error) {
+			func(handl.AuthInfo) (string, error) {
 				return expectedToken, nil
 			},
 			http.StatusOK,
@@ -152,11 +150,11 @@ func TestAuthHandler(t *testing.T) {
 		},
 		{
 			"user not exists",
-			model.AuthInfo{
+			handl.AuthInfo{
 				Email:    "root@root.com",
 				Password: "root1",
 			},
-			func(model.AuthInfo) (string, error) {
+			func(handl.AuthInfo) (string, error) {
 				return "", fmt.Errorf("internal error")
 			},
 			http.StatusInternalServerError,
@@ -167,12 +165,10 @@ func TestAuthHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			service := &services.Service{
-				Authorization: &mock.AuthServiceMock{
+			handler := Handler{
+				auth: &mock.AuthServiceMock{
 					MockCreateToken: test.mock,
-				},
-			}
-			handler := Handler{service}
+				}}
 			body, err := json.Marshal(test.authInfo)
 
 			if err != nil {
@@ -199,7 +195,7 @@ func TestAuthHandler(t *testing.T) {
 				return
 			}
 
-			bodyResp := model.JSONResult{}
+			bodyResp := handl.JSONResult{}
 
 			err = json.NewDecoder(rr.Body).Decode(&bodyResp)
 			if err != nil {
@@ -210,7 +206,7 @@ func TestAuthHandler(t *testing.T) {
 				return
 			}
 
-			token := model.Token{}
+			token := handl.Token{}
 			err = mapstructure.Decode(bodyResp.Data, &token)
 
 			if err != nil {

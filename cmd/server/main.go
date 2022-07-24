@@ -48,9 +48,9 @@ func main() {
 
 	repo := repository.NewRepository(db)
 
-	service := services.NewService(repo, os.Getenv("SIGNING_KEY"))
+	auth := services.NewAuthService(repo, os.Getenv("SIGNING_KEY"))
 
-	router := handler.NewHandler(service)
+	router := handler.NewHandler(auth)
 
 	srv := server.NewServer(viper.GetString("adr.host"), viper.GetString("adr.port"), router.InitRoutes())
 	if err := srv.Run(); err != nil {

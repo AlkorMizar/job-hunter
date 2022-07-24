@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/AlkorMizar/job-hunter/internal/handler/model"
+	"github.com/AlkorMizar/job-hunter/internal/model/handl"
 	"github.com/go-playground/validator"
 )
 
 func writeErrResp(w http.ResponseWriter, mess string, status int) {
-	body := model.JSONResult{
+	body := handl.JSONResult{
 		Message: mess,
 	}
 

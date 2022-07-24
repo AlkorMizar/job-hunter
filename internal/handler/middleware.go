@@ -41,7 +41,7 @@ func (h *Handler) authentication(next http.Handler) http.Handler {
 
 		accessToken := fields[1]
 
-		userInfo, err := h.services.Authorization.ParseToken(accessToken)
+		userInfo, err := h.auth.ParseToken(accessToken)
 		if err != nil {
 			if errors.Is(err, services.ErrExpiredToken) {
 				http.Error(w, "Forbidden, please authorize again", http.StatusUnauthorized)

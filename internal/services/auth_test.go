@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlkorMizar/job-hunter/internal/handler/model"
-	"github.com/AlkorMizar/job-hunter/internal/repository"
+	"github.com/AlkorMizar/job-hunter/internal/model/handl"
+	"github.com/AlkorMizar/job-hunter/internal/model/repo"
 	"github.com/AlkorMizar/job-hunter/internal/repository/mock"
 	"github.com/AlkorMizar/job-hunter/internal/services"
 	"github.com/golang-jwt/jwt/v4"
@@ -25,16 +25,16 @@ var (
 
 func TestParseToken(t *testing.T) {
 
-	validUserInf := model.UserInfo{
+	validUserInf := handl.UserInfo{
 		ID:    1,
 		Roles: map[string]struct{}{"role": {}},
 	}
-	invalidUserInf := model.UserInfo{}
+	invalidUserInf := handl.UserInfo{}
 
 	tests := []struct {
 		name  string
 		token func() string
-		uInfo model.UserInfo
+		uInfo handl.UserInfo
 		err   error
 	}{
 		{
@@ -136,7 +136,7 @@ func TestParseToken(t *testing.T) {
 }
 
 func TestCreateUSer(t *testing.T) {
-	validNewUser := &model.NewUser{
+	validNewUser := &handl.NewUser{
 		Login:    "login",
 		Email:    "email@gmail.com",
 		Roles:    []string{"role1", "role2"},
@@ -147,16 +147,16 @@ func TestCreateUSer(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		newUser        *model.NewUser
-		mockCreateUser func(user *repository.User) error
+		newUser        *handl.NewUser
+		mockCreateUser func(user *repo.User) error
 		err            error
 	}{
 		{
 			"ok",
 			validNewUser,
-			func(user *repository.User) error {
+			func(user *repo.User) error {
 				if !compare(validNewUser, user) {
-					return fmt.Errorf("incorrect repository.User data")
+					return fmt.Errorf("incorrect repo.User data")
 				}
 				return nil
 			},
@@ -165,7 +165,7 @@ func TestCreateUSer(t *testing.T) {
 		{
 			"user already exist",
 			validNewUser,
-			func(user *repository.User) error {
+			func(user *repo.User) error {
 				return errAlreadyExists
 			},
 			errAlreadyExists,
@@ -194,69 +194,69 @@ func TestCreateToken(t *testing.T) {
 
 	pwd, _ := bcrypt.GenerateFromPassword([]byte("valid"), 8)
 
-	user := repository.User{
+	user := repo.User{
 		ID:       1,
 		Password: pwd,
 	}
 
 	roles := map[string]struct{}{"role1": {}, "role2": {}}
 
-	invalUInfo := model.UserInfo{}
+	invalUInfo := handl.UserInfo{}
 
 	tests := []struct {
 		name         string
-		authInfo     model.AuthInfo
-		mockGetUser  func(email string) (repository.User, error)
-		mockGetRoles func(user *repository.User) (map[string]struct{}, error)
+		authInfo     handl.AuthInfo
+		mockGetUser  func(email string) (repo.User, error)
+		mockGetRoles func(user *repo.User) (map[string]struct{}, error)
 		err          error
-		uInfo        model.UserInfo
+		uInfo        handl.UserInfo
 	}{
 		{
 			"ok",
-			model.AuthInfo{
+			handl.AuthInfo{
 				Email:    "test@gmail.com",
 				Password: "valid",
 			},
-			func(email string) (repository.User, error) {
+			func(email string) (repo.User, error) {
 				return user, nil
 			},
-			func(user *repository.User) (map[string]struct{}, error) {
+			func(user *repo.User) (map[string]struct{}, error) {
 				return roles, nil
 			},
 			nil,
-			model.UserInfo{
+			handl.UserInfo{
 				ID:    user.ID,
 				Roles: roles,
 			},
 		},
 		{
 			"ok,empty roles",
-			model.AuthInfo{
+			handl.AuthInfo{
 				Email:    "test@gmail.com",
 				Password: "valid",
 			},
-			func(email string) (repository.User, error) {
+			func(email string) (repo.User, error) {
 				return user, nil
 			},
-			func(user *repository.User) (map[string]struct{}, error) {
+			func(user *repo.User) (map[string]struct{}, error) {
 				return map[string]struct{}{}, nil
 			},
 			nil,
-			model.UserInfo{
+			handl.UserInfo{
 				ID:    user.ID,
 				Roles: map[string]struct{}{},
 			},
 		},
 		{
 			"user not found",
-			model.AuthInfo{
+			handl.AuthInfo{
 				Email:    "not@found.com",
 				Password: "valid",
 			},
-			func(email string) (repository.User, error) {
-				return repository.User{}, errNotFound
+			func(email string) (repo.User, error) {
+				return repo.User{}, errNotFound
 			},
-			func(user *repository.User) (map[string]struct{}, error) {
+			func(user *repo.User) (map[string]struct{}, error) {
 				return nil, fmt.Errorf("impossible error")
 			},
 			errNotFound,
@@ -264,14 +264,14 @@ func TestCreateToken(t *testing.T) {
 		},
 		{
 			"invalid password",
-			model.AuthInfo{
+			handl.AuthInfo{
 				Email:    "test@gmail.com",
 				Password: "invalid",
 			},
-			func(email string) (repository.User, error) {
+			func(email string) (repo.User, error) {
 				return user, nil
 			},
-			func(user *repository.User) (map[string]struct{}, error) {
+			func(user *repo.User) (map[string]struct{}, error) {
 				return nil, fmt.Errorf("impossible error")
 			},
 			bcrypt.ErrMismatchedHashAndPassword,
@@ -279,14 +279,14 @@ func TestCreateToken(t *testing.T) {
 		},
 		{
 			"error in roles",
-			model.AuthInfo{
+			handl.AuthInfo{
 				Email:    "test@gmail.com",
 				Password: "valid",
 			},
-			func(email string) (repository.User, error) {
+			func(email string) (repo.User, error) {
 				return user, nil
 			},
-			func(user *repository.User) (map[string]struct{}, error) {
+			func(user *repo.User) (map[string]struct{}, error) {
 				return nil, errGetRolesFailed
 			},
 			errGetRolesFailed,
@@ -332,7 +332,7 @@ func TestCreateToken(t *testing.T) {
 	}
 }
 
-func compare(newUser *model.NewUser, user *repository.User) bool {
+func compare(newUser *handl.NewUser, user *repo.User) bool {
 	for _, v := range newUser.Roles {
 		if _, ok := user.Roles[v]; !ok {
 			return false

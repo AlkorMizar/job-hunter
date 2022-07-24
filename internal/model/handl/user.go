@@ -1,4 +1,4 @@
-package model
+package handl
 
 type NewUser struct {
 	Login    string   `json:"login" binding:"required" minimum:"5" maximum:"40" default:"test" validate:"required,min=3,max=40"`

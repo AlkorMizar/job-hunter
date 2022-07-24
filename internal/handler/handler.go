@@ -4,17 +4,23 @@ import (
 	"net/http"
 
 	_ "github.com/AlkorMizar/job-hunter/api/docs" //nolint:blank-imports // for swagger documentation page
-	"github.com/AlkorMizar/job-hunter/internal/services"
+	"github.com/AlkorMizar/job-hunter/internal/model/handl"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-type Handler struct {
-	services *services.Service
+type Authorization interface {
+	CreateUser(newUser *handl.NewUser) error
+	CreateToken(authInfo handl.AuthInfo) (string, error)
+	ParseToken(tokenStr string) (handl.UserInfo, error)
 }
 
-func NewHandler(serv *services.Service) *Handler {
-	return &Handler{services: serv}
+type Handler struct {
+	auth Authorization
+}
+
+func NewHandler(auth Authorization) *Handler {
+	return &Handler{auth: auth}
 }
 
 func (h *Handler) InitRoutes() *mux.Router {

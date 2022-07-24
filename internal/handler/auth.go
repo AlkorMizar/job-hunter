@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AlkorMizar/job-hunter/internal/handler/model"
+	"github.com/AlkorMizar/job-hunter/internal/model/handl"
 )
 
 // @Summary      Registration
@@ -13,29 +13,28 @@ import (
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param   newUser      body     model.NewUser true "Login, email, password"
-// @Success      200  {object}  model.JSONResult
-// @Failure      404  {object}  model.JSONResult
-// @Failure      500  {object}  model.JSONResult
+// @Param   newUser      body     handl.NewUser true "Login, email, password"
+// @Success      200  {object}  handl.JSONResult
+// @Failure      404  {object}  handl.JSONResult
+// @Failure      500  {object}  handl.JSONResult
 // @Router       /reg [post]
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
-	var newUser model.NewUser
+	var newUser handl.NewUser
 
 	if err := getFromBody(r, &newUser); err != nil {
-		log.Print(err)
 		writeErrResp(w, err.Error(), http.StatusBadRequest)
 
 		return
 	}
 
-	if err := h.services.Authorization.CreateUser(&newUser); err != nil {
+	if err := h.auth.CreateUser(&newUser); err != nil {
 		log.Print(err)
 		writeErrResp(w, "internal error", http.StatusInternalServerError)
 
 		return
 	}
 
-	body := model.JSONResult{
+	body := handl.JSONResult{
 		Message: "Successfully authorized",
 		Data:    nil,
 	}
@@ -53,13 +52,13 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        authInfo   body     model.AuthInfo true "Email and password"
-// @Success      200  {object}  model.JSONResult{data=model.Token} "Message and token"
-// @Failure      404  {object}  model.JSONResult
-// @Failure      500  {object}  model.JSONResult
+// @Param        authInfo   body     handl.AuthInfo true "Email and password"
+// @Success      200  {object}  handl.JSONResult{data=handl.Token} "Message and token"
+// @Failure      404  {object}  handl.JSONResult
+// @Failure      500  {object}  handl.JSONResult
 // @Router       /auth [post]
 func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
-	var authInfo model.AuthInfo
+	var authInfo handl.AuthInfo
 
 	if err := getFromBody(r, &authInfo); err != nil {
 		log.Print(err)
@@ -68,7 +67,7 @@ func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.services.Authorization.CreateToken(authInfo)
+	token, err := h.auth.CreateToken(authInfo)
 
 	if err != nil {
 		log.Print(err)
@@ -77,9 +76,9 @@ func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := model.JSONResult{
+	body := handl.JSONResult{
 		Message: "Successfully authorized",
-		Data:    model.Token{Token: token},
+		Data:    handl.Token{Token: token},
 	}
 
 	w.WriteHeader(http.StatusOK)

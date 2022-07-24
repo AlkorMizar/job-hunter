@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AlkorMizar/job-hunter/internal/handler/model"
-	"github.com/AlkorMizar/job-hunter/internal/repository"
+	"github.com/AlkorMizar/job-hunter/internal/model/handl"
+	"github.com/AlkorMizar/job-hunter/internal/model/repo"
 	"github.com/AlkorMizar/job-hunter/internal/util"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -25,23 +25,30 @@ var (
 )
 
 type Claims struct {
-	model.UserInfo
+	handl.UserInfo
 	jwt.RegisteredClaims
 }
 
+type UserManagment interface {
+	CreateUser(user *repo.User) error
+	GetUserWithEamil(email string) (repo.User, error)
+	GetRoles(user *repo.User) (map[string]struct{}, error)
+	SetRoles(user *repo.User) error
+}
+
 type AuthService struct {
-	repo       repository.UserManagment
+	repo       UserManagment
 	signingKey []byte
 }
 
-func NewAuthService(repo repository.UserManagment, sKey string) *AuthService {
+func NewAuthService(repo UserManagment, sKey string) *AuthService {
 	return &AuthService{
 		repo:       repo,
 		signingKey: []byte(sKey),
 	}
 }
 
-func (s *AuthService) CreateUser(newUser *model.NewUser) (err error) {
+func (s *AuthService) CreateUser(newUser *handl.NewUser) (err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("in CreateUser: %w", err)
@@ -59,7 +66,7 @@ func (s *AuthService) CreateUser(newUser *model.NewUser) (err error) {
 		roles[v] = struct{}{}
 	}
 
-	user := repository.User{
+	user := repo.User{
 		Login:    newUser.Login,
 		Password: pwd,
 		Email:    newUser.Email,
@@ -70,7 +77,7 @@ func (s *AuthService) CreateUser(newUser *model.NewUser) (err error) {
 	return s.repo.CreateUser(&user)
 }
 
-func (s *AuthService) CreateToken(authInfo model.AuthInfo) (token string, err error) {
+func (s *AuthService) CreateToken(authInfo handl.AuthInfo) (token string, err error) {
 	defer util.Wrap(&err, "in CreateToken")
 
 	user, err := s.repo.GetUserWithEamil(authInfo.Email)
@@ -79,7 +86,7 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (token string, err er
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(authInfo.Password)); err != nil {
-		return "", fmt.Errorf("failed compare passwords of user %d: %w", user.ID, err)
+		return "", fmt.Errorf("failed compare passwords: %w", err)
 	}
 
 	user.Roles, err = s.repo.GetRoles(&user)
@@ -89,7 +96,7 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (token string, err er
 
 	// Create the Claims
 	claims := &Claims{
-		UserInfo: model.UserInfo{
+		UserInfo: handl.UserInfo{
 			ID:    user.ID,
 			Roles: user.Roles,
 		},
@@ -108,7 +115,7 @@ func (s *AuthService) CreateToken(authInfo model.AuthInfo) (token string, err er
 	return token, err
 }
 
-func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err error) {
+func (s *AuthService) ParseToken(tokenStr string) (info handl.UserInfo, err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("in ParseToken : %w", err)
@@ -122,15 +129,15 @@ func (s *AuthService) ParseToken(tokenStr string) (info model.UserInfo, err erro
 	if err != nil {
 		if ve, ok := err.(*jwt.ValidationError); ok {
 			if ve.Errors&jwt.ValidationErrorExpired != 0 {
-				return model.UserInfo{}, ErrExpiredToken
+				return handl.UserInfo{}, ErrExpiredToken
 			}
 		}
-		return model.UserInfo{}, ErrTokenInvalid
+		return handl.UserInfo{}, ErrTokenInvalid
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
-		return model.UserInfo{}, ErrClaimsInvalid
+		return handl.UserInfo{}, ErrClaimsInvalid
 	}
 
 	info = claims.UserInfo

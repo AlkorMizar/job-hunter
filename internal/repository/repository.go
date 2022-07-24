@@ -2,19 +2,12 @@ package repository
 
 import "github.com/jmoiron/sqlx"
 
-type UserManagment interface {
-	CreateUser(user *User) error
-	GetUserWithEamil(email string) (User, error)
-	GetRoles(user *User) (map[string]struct{}, error)
-	SetRoles(user *User) error
-}
-
 type Repository struct {
-	UserManagment
+	db *sqlx.DB
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		UserManagment: NewUserManagMsql(db),
+		db: db,
 	}
 }

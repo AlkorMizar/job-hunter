@@ -2,39 +2,12 @@ package repository
 
 import (
 	"fmt"
-	"time"
 
+	"github.com/AlkorMizar/job-hunter/internal/model/repo"
 	"github.com/AlkorMizar/job-hunter/internal/util"
-	"github.com/jmoiron/sqlx"
 )
 
-type User struct {
-	ID          int       `json:"idUser" db:"idUser"`
-	Login       string    `json:"login" db:"login"`
-	FullName    string    `json:"fullName" db:"fullName"`
-	Email       string    `json:"email" db:"email"`
-	Password    []byte    `json:"password" db:"password"`
-	DateCreated time.Time `json:"datecreated" db:"dateCreated"`
-	LastCheck   time.Time `json:"lastcheck" db:"lastCheck"`
-	Roles       map[string]struct{}
-}
-
-type Role struct {
-	ID   int    `json:"idRole" db:"idRole"`
-	Name string `json:"name" db:"name"`
-}
-
-type UserManagMysql struct {
-	db sqlx.DB
-}
-
-func NewUserManagMsql(db *sqlx.DB) *UserManagMysql {
-	return &UserManagMysql{
-		db: *db,
-	}
-}
-
-func (r *UserManagMysql) CreateUser(user *User) (err error) {
+func (r *Repository) CreateUser(user *repo.User) (err error) {
 	defer util.Wrap(&err, "in CreateUser")
 
 	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullName)"
@@ -57,7 +30,7 @@ func (r *UserManagMysql) CreateUser(user *User) (err error) {
 	return nil
 }
 
-func (r *UserManagMysql) GetUserWithEamil(email string) (user User, err error) {
+func (r *Repository) GetUserWithEamil(email string) (user repo.User, err error) {
 	defer util.Wrap(&err, "in GetUserWithEamil")
 
 	query := "SELECT * FROM user WHERE email=?"
@@ -67,11 +40,11 @@ func (r *UserManagMysql) GetUserWithEamil(email string) (user User, err error) {
 	return user, err
 }
 
-func (r *UserManagMysql) GetRoles(user *User) (roles map[string]struct{}, err error) {
+func (r *Repository) GetRoles(user *repo.User) (roles map[string]struct{}, err error) {
 	defer util.Wrap(&err, "in GetRoles")
 
 	roles = make(map[string]struct{})
-	rolesArr := []Role{}
+	rolesArr := []repo.Role{}
 	query := "SELECT role.name from role JOIN user_has_role ON User_idUser=? AND Role_idRole=idRole; "
 	err = r.db.Select(&rolesArr, query, user.ID)
 
@@ -86,7 +59,7 @@ func (r *UserManagMysql) GetRoles(user *User) (roles map[string]struct{}, err er
 	return roles, err
 }
 
-func (r *UserManagMysql) SetRoles(user *User) (err error) {
+func (r *Repository) SetRoles(user *repo.User) (err error) {
 	defer util.Wrap(&err, "in SetRoles")
 
 	tx, err := r.db.Begin()
