@@ -8,6 +8,7 @@ import (
 
 type Server struct {
 	httpServer *http.Server
+	timeOutSec int
 }
 
 const (
@@ -17,7 +18,7 @@ const (
 )
 
 // function called to create service and configure it
-func NewServer(host, port string, handler http.Handler) *Server {
+func NewServer(host, port string, handler http.Handler, timeOutSec int) *Server {
 	server := http.Server{
 		Addr:           host + ":" + port,
 		Handler:        handler,
@@ -28,6 +29,7 @@ func NewServer(host, port string, handler http.Handler) *Server {
 
 	return &Server{
 		httpServer: &server,
+		timeOutSec: timeOutSec,
 	}
 }
 
@@ -43,5 +45,7 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	return s.httpServer.Shutdown(ctx)
+	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(s.timeOutSec)*time.Second)
+	defer cancel()
+	return s.httpServer.Shutdown(ctxTimeout)
 }

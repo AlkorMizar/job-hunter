@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/AlkorMizar/job-hunter/internal/handler"
 	"github.com/AlkorMizar/job-hunter/internal/repository"
@@ -10,6 +14,7 @@ import (
 	"github.com/AlkorMizar/job-hunter/internal/services"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 )
 
 // @title           Swagger Example API
@@ -25,11 +30,22 @@ import (
 // @name Authorization
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		c := make(chan os.Signal, 1) // we need to reserve to buffer size 1, so the notifier are not blocked
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+
+		s := <-c
+		log.Printf("Signal %v", s)
+		cancel()
+	}()
+
 	if err := initConfig(); err != nil {
 		log.Fatalf("error initializing configs: %s", err.Error())
 	}
 
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("error loading env variables: %s", err.Error())
 	}
 
@@ -52,14 +68,40 @@ func main() {
 
 	router := handler.NewHandler(auth)
 
-	srv := server.NewServer(viper.GetString("adr.host"), viper.GetString("adr.port"), router.InitRoutes())
-	if err := srv.Run(); err != nil {
-		log.Fatalf("error ocured during run %s", err.Error())
+	srv := server.NewServer(viper.GetString("server.host"), viper.GetString("server.port"), router.InitRoutes(), viper.GetInt("server.timeOutSEc"))
+
+	g, gCtx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		log.Print("Run...")
+		if err := srv.Run(); err != nil {
+			log.Fatalf("error ocured during run %s", err.Error())
+			return fmt.Errorf("in main %w", err)
+		}
+		return nil
+	})
+	g.Go(func() error {
+		log.Print("Wait end")
+		<-gCtx.Done()
+		log.Print("Shuting down")
+		err := db.Close()
+		if err != nil {
+			return fmt.Errorf("in main during shutdown db %w", err)
+		}
+		err = srv.Shutdown(context.Background())
+		if err != nil {
+			return fmt.Errorf("in main during shutdown server %w", err)
+		}
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		fmt.Printf("exit reason: %s \n", err)
 	}
+
 }
 
 func initConfig() error {
-	viper.AddConfigPath("../../configs")
+	viper.AddConfigPath("configs")
 	viper.SetConfigName("config")
 
 	return viper.ReadInConfig()

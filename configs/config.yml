@@ -1,6 +1,7 @@
-adr: 
+server: 
   port: "8080"
   host: "localhost"
+  timeOutSEc: 10
 
 db:
     username: "root"
