@@ -28,6 +28,11 @@ func (h *Handler) InitRoutes() *mux.Router {
 	unauth := r.PathPrefix("/").Subrouter()
 	auth := r.PathPrefix("/").Subrouter()
 
+	sh := http.StripPrefix("/swaggerui/", http.FileServer(http.Dir("./swaggerui/")))
+	r.PathPrefix("/swaggerui/").Handler(sh)
+	api := http.StripPrefix("/api/", http.FileServer(http.Dir("./api/")))
+	r.PathPrefix("/api/").Handler(api)
+
 	unauth.HandleFunc("/reg", h.register).Methods(http.MethodPost)
 	unauth.HandleFunc("/auth", h.authenticate).Methods(http.MethodPost)
 	unauth.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
