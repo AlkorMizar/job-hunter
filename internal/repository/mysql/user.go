@@ -1,4 +1,4 @@
-package repository
+package mysql
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 func (r *Repository) CreateUser(user *repo.User) (err error) {
 	defer util.Wrap(&err, "in CreateUser")
 
-	query := "INSERT INTO user (login, email, password, fullName) values (:login,:email,:password,:fullName)"
+	query := "INSERT INTO user (login, email, password, full_name) values (:login,:email,:password,:full_name)"
 	res, err := r.db.NamedExec(query, user)
 
 	if err != nil {
@@ -45,7 +45,7 @@ func (r *Repository) GetRoles(user *repo.User) (roles map[string]struct{}, err e
 
 	roles = make(map[string]struct{})
 	rolesArr := []repo.Role{}
-	query := "SELECT role.name from role JOIN user_has_role ON User_idUser=? AND Role_idRole=idRole; "
+	query := "SELECT role.name from role JOIN user_has_role ON fk_user_id=? AND fk_role_id=role_id; "
 	err = r.db.Select(&rolesArr, query, user.ID)
 
 	if err != nil {
@@ -67,15 +67,15 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 		return fmt.Errorf("failed r.db.Begin with error: %w", err)
 	}
 
-	_, err = tx.Exec(`DELETE FROM user_has_role WHERE User_idUser=?`, user.ID)
+	_, err = tx.Exec(`DELETE FROM user_has_role WHERE fk_user_id=?`, user.ID)
 	if err != nil {
 		return fmt.Errorf("failed exec DELETE query with error: %w", err)
 	}
 
 	for k := range user.Roles {
 		res, err := tx.Exec(`
-		insert into user_has_role (User_idUser, Role_idRole)
-		select ?, idRole from role
+		insert into user_has_role (fk_user_id, fk_role_id)
+		select ?, role_id from role
 		where name = ?;`, user.ID, k)
 		if err != nil {
 			return fmt.Errorf("failed exec INSERT query with error: %w", err)

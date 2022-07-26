@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,8 @@ import (
 	"syscall"
 
 	"github.com/AlkorMizar/job-hunter/internal/handler"
-	"github.com/AlkorMizar/job-hunter/internal/repository"
+	"github.com/AlkorMizar/job-hunter/internal/repository/mysql"
+	"github.com/AlkorMizar/job-hunter/internal/repository/postgres"
 	"github.com/AlkorMizar/job-hunter/internal/server"
 	"github.com/AlkorMizar/job-hunter/internal/services"
 	"github.com/joho/godotenv"
@@ -49,20 +51,17 @@ func main() {
 		log.Fatalf("error loading env variables: %s", err.Error())
 	}
 
-	db, err := repository.NewMySQLDB(&repository.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		DBName:   viper.GetString("db.dbname"),
-		Protocol: viper.GetString("db.protocol"),
-		Options:  viper.GetString("db.options"),
-		Password: os.Getenv("DB_PASSWORD"),
+	var repo services.Repository
+	flag.Func("db", "server works with mysql/postgres", func(s string) (err error) {
+		repo, err = getRepo(s)
+		return err
 	})
-	if err != nil {
-		log.Fatalf("failed to initialize db: %s", err.Error())
-	}
 
-	repo := repository.NewRepository(db)
+	flag.Parse()
+
+	if repo == nil {
+		log.Fatal("Databse for server not set")
+	}
 
 	auth := services.NewAuthService(repo, os.Getenv("SIGNING_KEY"))
 
@@ -83,7 +82,7 @@ func main() {
 		log.Print("Wait end")
 		<-gCtx.Done()
 		log.Print("Shuting down")
-		err := db.Close()
+		err := repo.Close()
 		if err != nil {
 			return fmt.Errorf("in main during shutdown db %w", err)
 		}
@@ -105,4 +104,44 @@ func initConfig() error {
 	viper.SetConfigName("config")
 
 	return viper.ReadInConfig()
+}
+
+func getRepo(dbType string) (repo services.Repository, err error) {
+
+	if dbType == "mysql" {
+		db, err := mysql.NewMySQLDB(&mysql.Config{
+			Host:     viper.GetString("mysql.host"),
+			Port:     viper.GetString("mysql.port"),
+			Username: viper.GetString("mysql.username"),
+			DBName:   viper.GetString("mysql.dbname"),
+			Protocol: viper.GetString("mysql.protocol"),
+			Options:  viper.GetString("mysql.options"),
+			Password: os.Getenv("MYSQL_PASSWORD"),
+		})
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize mysql db: %w", err)
+		}
+
+		repo = mysql.NewMysqlRepository(db)
+	}
+
+	if dbType == "postgres" {
+		db, err := postgres.NewPodtgresDB(&postgres.Config{
+			Host:     viper.GetString("postgres.host"),
+			Port:     viper.GetString("postgres.port"),
+			Username: viper.GetString("postgres.username"),
+			DBName:   viper.GetString("postgres.dbname"),
+			Options:  viper.GetString("postgres.options"),
+			Password: os.Getenv("POSTGRES_PASSWORD"),
+		})
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize postgres db: %w", err)
+		}
+
+		repo = postgres.NewPostgresRepository(db)
+	}
+
+	return repo, nil
 }

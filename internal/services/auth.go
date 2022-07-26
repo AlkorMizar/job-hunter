@@ -51,7 +51,7 @@ func NewAuthService(repo UserManagment, sKey string) *AuthService {
 func (s *AuthService) CreateUser(newUser *handl.NewUser) (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("in CreateUser: %w", err)
+			err = fmt.Errorf("in CreateUser(service) : %w", err)
 		}
 	}()
 
