@@ -23,6 +23,20 @@ func writeErrResp(w http.ResponseWriter, mess string, status int) {
 	}
 }
 
+func renderJSON(w http.ResponseWriter, data interface{}, msg string) {
+	body := handl.JSONResult{
+		Message: msg,
+		Data:    data,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
 func getFromBody(r *http.Request, v interface{}) (err error) {
 	validate := validator.New()
 
