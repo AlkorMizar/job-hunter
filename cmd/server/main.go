@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/AlkorMizar/job-hunter/internal/handler"
@@ -21,7 +22,34 @@ import (
 )
 
 func main() {
-	logger := logging.NewLogger()
+	defaultLog := logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel)
+
+	if err := initConfig(); err != nil {
+		defaultLog.Fatal("error during initializaint config", zap.Error(err))
+	}
+
+	var repo services.Repository
+	flag.Func("db", "server works with mysql/postgres", func(arg string) (err error) {
+		repo, err = getRepo(arg, defaultLog)
+		if err != nil {
+			defaultLog.Error("Couldn't parse db args", zap.Error(err))
+		}
+
+		return err
+	})
+
+	flag.Parse()
+
+	var log *logging.Logger
+	if os.Getenv("APP_ENV") == "production" {
+		log = logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel)
+	} else {
+		log = logging.NewZapLogger(logging.DebugLeve, logging.DebugLeve)
+	}
+
+	if repo == nil {
+		log.Fatal("Databse for server not set")
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -30,68 +58,46 @@ func main() {
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 		s := <-c
-		logger.Info("System recived signal to shutdown", zap.Any("signal", s))
+		log.Info("System recived signal to shutdown", zap.Any("signal", s))
 		cancel()
 	}()
 
 	if err := initConfig(); err != nil {
-		logger.Fatal("Error initializing configs", zap.Error(err))
+		log.Fatal("Error initializing configs", zap.Error(err))
 	}
 
-	logger.Info("Config init", zap.Any("configFile", viper.ConfigFileUsed()))
+	bcryptCost, _ := strconv.Atoi(os.Getenv("BCRYPT_COST"))
 
-	if err := godotenv.Load(".env"); err != nil {
-		logger.Fatal("Error loading env variables", zap.Error(err))
-	}
+	auth := services.NewAuthService(repo, os.Getenv("SIGNING_KEY"), bcryptCost, log)
 
-	logger.Info(".env load")
-
-	var repo services.Repository
-	flag.Func("db", "server works with mysql/postgres", func(arg string) (err error) {
-		repo, err = getRepo(arg, logger)
-		if err != nil {
-			logger.Error("Couldn't parse db args", zap.Error(err))
-		}
-
-		return err
-	})
-
-	flag.Parse()
-
-	if repo == nil {
-		logger.Fatal("Databse for server not set")
-	}
-
-	auth := services.NewAuthService(repo, os.Getenv("SIGNING_KEY"), logger)
-
-	router := handler.NewHandler(logger, auth)
+	router := handler.NewHandler(log, auth)
 
 	srv := server.NewServer(viper.GetString("server.host"), viper.GetString("server.port"), router.InitRoutes(), viper.GetInt("server.timeOutSEc"))
 
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		logger.Info("Runing...")
+		log.Info("Runing...")
 		if err := srv.Run(); err != nil {
-			logger.Fatal("Error ocured during run", zap.Error(err))
+			log.Fatal("Error ocured during run", zap.Error(err))
 			return fmt.Errorf("in main %w", err)
 		}
 		return nil
 	})
 	g.Go(func() error {
-		logger.Info("Waiting shutdown")
+		log.Info("Waiting shutdown")
 		<-gCtx.Done()
-		logger.Warn("Shutting down")
+		log.Warn("Shutting down")
 
 		var errAll error
 		errDB := repo.Close()
 		if errDB != nil {
-			logger.Error("Error during shutdown db", zap.Error(errDB))
+			log.Error("Error during shutdown db", zap.Error(errDB))
 			errAll = fmt.Errorf("error in shutting down database ;")
 		}
 
 		errSrv := srv.Shutdown(context.Background())
 		if errSrv != nil {
-			logger.Error("Error during shutdown server", zap.Error(errSrv))
+			log.Error("Error during shutdown server", zap.Error(errSrv))
 			errAll = fmt.Errorf("error in shutting down server %w", errAll)
 		}
 
@@ -99,16 +105,30 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error("Error during shutdown", zap.Error(err))
+		log.Error("Error during shutdown", zap.Error(err))
 	}
 
 }
 
 func initConfig() error {
+	log := logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel)
+
 	viper.AddConfigPath("configs")
 	viper.SetConfigName("config")
 
-	return viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("during reading configs %w", err)
+	}
+
+	log.Info("Config initialized", zap.Any("configFile", viper.ConfigFileUsed()))
+
+	if err := godotenv.Load(".env"); err != nil {
+		return fmt.Errorf("during reading .env %w", err)
+	}
+
+	log.Info(".env load")
+
+	return nil
 }
 
 func getRepo(dbType string, log *logging.Logger) (repo services.Repository, err error) {

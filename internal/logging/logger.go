@@ -8,6 +8,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+type LogLevel int
+
+const (
+	ErrorLevel = LogLevel(iota)
+	DebugLeve
+)
+
 type correlationIdType int
 
 const (
@@ -19,7 +26,12 @@ type Logger struct {
 	*zap.Logger
 }
 
-func NewLogger() (logger *Logger) {
+func NewMockLogger() (logger *Logger) {
+	log, _ := zap.NewProduction()
+	return &Logger{log}
+}
+
+func NewZapLogger(logFileLvl, logConsoleLvl LogLevel) (logger *Logger) {
 	config := zap.NewProductionEncoderConfig()
 
 	config.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -28,18 +40,29 @@ func NewLogger() (logger *Logger) {
 
 	consoleEncoder := zapcore.NewConsoleEncoder(config)
 
-	logFile, _ := os.OpenFile("log.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logFile, _ := os.OpenFile("logs/log.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	writer := zapcore.AddSync(logFile)
 
 	core := zapcore.NewTee(
-		zapcore.NewCore(fileEncoder, writer, zapcore.ErrorLevel),
-		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), zapcore.DebugLevel),
+		zapcore.NewCore(fileEncoder, writer, levelToZapTranslate(logConsoleLvl)),
+		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), levelToZapTranslate(logConsoleLvl)),
 	)
 
 	logger = &Logger{zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))}
 
 	return logger
+}
+
+func levelToZapTranslate(lvl LogLevel) zapcore.Level {
+	switch lvl {
+	case DebugLeve:
+		return zap.DebugLevel
+	case ErrorLevel:
+		return zap.ErrorLevel
+	default:
+		return zap.InfoLevel
+	}
 }
 
 // WithRqId returns a context which knows its request ID

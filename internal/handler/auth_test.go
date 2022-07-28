@@ -86,7 +86,7 @@ func TestRegisterHandler(t *testing.T) {
 				return nil
 			},
 		},
-		log: logging.NewLogger(),
+		log: logging.NewMockLogger(),
 	}
 
 	for _, test := range tests {
@@ -171,7 +171,7 @@ func TestAuthHandler(t *testing.T) {
 				auth: &mock.AuthServiceMock{
 					MockCreateToken: test.mock,
 				},
-				log: logging.NewLogger(),
+				log: logging.NewMockLogger(),
 			}
 			body, err := json.Marshal(test.authInfo)
 

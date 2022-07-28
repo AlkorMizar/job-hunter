@@ -15,9 +15,8 @@ import (
 )
 
 const (
-	bcryptCost = 8
-	tokenTTL   = 3 * time.Hour
-	issuer     = "job-hunter"
+	tokenTTL = 3 * time.Hour
+	issuer   = "job-hunter"
 )
 
 var (
@@ -42,13 +41,15 @@ type AuthService struct {
 	repo       UserManagment
 	signingKey []byte
 	log        *logging.Logger
+	bcryptCost int
 }
 
-func NewAuthService(repo UserManagment, sKey string, log *logging.Logger) *AuthService {
+func NewAuthService(repo UserManagment, sKey string, bcryptCost int, log *logging.Logger) *AuthService {
 	return &AuthService{
 		repo:       repo,
 		signingKey: []byte(sKey),
 		log:        log,
+		bcryptCost: bcryptCost,
 	}
 }
 
@@ -59,7 +60,7 @@ func (s *AuthService) CreateUser(ctx context.Context, newUser *handl.NewUser) (e
 		}
 	}()
 
-	pwd, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcryptCost)
+	pwd, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), s.bcryptCost)
 	if err != nil {
 		return fmt.Errorf("failed generate hash with error: %w", err)
 	}

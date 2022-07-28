@@ -18,12 +18,13 @@ import (
 )
 
 const (
-	tokenTTL = time.Hour
+	tokenTTL   = time.Hour
+	bcryptCost = 1
 )
 
 var (
 	signingKey = []byte("testSigningKey")
-	logger     = logging.NewLogger()
+	logger     = logging.NewMockLogger()
 )
 
 func TestParseToken(t *testing.T) {
@@ -123,7 +124,7 @@ func TestParseToken(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			auth := services.NewAuthService(&mock.UserManagment{}, string(signingKey), logger)
+			auth := services.NewAuthService(&mock.UserManagment{}, string(signingKey), bcryptCost, logger)
 
 			info, err := auth.ParseToken(context.Background(), test.token())
 
@@ -180,7 +181,7 @@ func TestCreateUSer(t *testing.T) {
 
 			auth := services.NewAuthService(&mock.UserManagment{
 				MockCreateUser: test.mockCreateUser,
-			}, string(signingKey), logger)
+			}, string(signingKey), bcryptCost, logger)
 
 			err := auth.CreateUser(context.Background(), test.newUser)
 
@@ -195,7 +196,7 @@ func TestCreateToken(t *testing.T) {
 	errNotFound := errors.New("not found")
 	errGetRolesFailed := errors.New("faileg GetRoles")
 
-	pwd, _ := bcrypt.GenerateFromPassword([]byte("valid"), 8)
+	pwd, _ := bcrypt.GenerateFromPassword([]byte("valid"), bcryptCost)
 
 	user := repo.User{
 		ID:       1,
@@ -303,7 +304,7 @@ func TestCreateToken(t *testing.T) {
 			authServ := services.NewAuthService(&mock.UserManagment{
 				MockGetRoles:         test.mockGetRoles,
 				MockGetUserWithEamil: test.mockGetUser,
-			}, string(signingKey), logger)
+			}, string(signingKey), bcryptCost, logger)
 
 			tokenStr, err := authServ.CreateToken(context.Background(), test.authInfo)
 

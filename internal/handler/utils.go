@@ -22,7 +22,7 @@ func writeErrResp(w http.ResponseWriter, mess string, status int) {
 
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		logging.NewLogger().Error("Error during encoding responce error", zap.Error(err))
+		logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel).Error("Error during encoding responce error", zap.Error(err))
 	}
 }
 
@@ -37,7 +37,7 @@ func renderJSON(w http.ResponseWriter, data interface{}, msg string) {
 
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		logging.NewLogger().Error("Error during encoding responce body", zap.Error(err))
+		logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel).Error("Error during encoding responce body", zap.Error(err))
 	}
 }
 
