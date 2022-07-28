@@ -1,14 +1,19 @@
 package postgres
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/AlkorMizar/job-hunter/internal/logging"
+	"github.com/jmoiron/sqlx"
+)
 
 type Repository struct {
-	db *sqlx.DB
+	db  *sqlx.DB
+	log *logging.Logger
 }
 
-func NewPostgresRepository(db *sqlx.DB) *Repository {
+func NewPostgresRepository(db *sqlx.DB, log *logging.Logger) *Repository {
 	return &Repository{
-		db: db,
+		db:  db,
+		log: log,
 	}
 }
 

@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	_ "github.com/jackc/pgx/stdlib"
@@ -29,7 +28,7 @@ func NewPodtgresDB(cfg *Config) (*sqlx.DB, error) {
 	db, err := sqlx.Connect("pgx", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s",
 		cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.Options))
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	db.SetConnMaxLifetime(connMaxLifetime)

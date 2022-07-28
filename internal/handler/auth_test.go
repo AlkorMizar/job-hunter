@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/AlkorMizar/job-hunter/internal/logging"
 	"github.com/AlkorMizar/job-hunter/internal/model/handl"
 	"github.com/AlkorMizar/job-hunter/internal/services/mock"
 	"github.com/mitchellh/mapstructure"
@@ -85,6 +86,7 @@ func TestRegisterHandler(t *testing.T) {
 				return nil
 			},
 		},
+		log: logging.NewLogger(),
 	}
 
 	for _, test := range tests {
@@ -168,7 +170,9 @@ func TestAuthHandler(t *testing.T) {
 			handler := Handler{
 				auth: &mock.AuthServiceMock{
 					MockCreateToken: test.mock,
-				}}
+				},
+				log: logging.NewLogger(),
+			}
 			body, err := json.Marshal(test.authInfo)
 
 			if err != nil {

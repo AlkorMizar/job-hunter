@@ -1,11 +1,13 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/AlkorMizar/job-hunter/internal/model/repo"
 	"github.com/AlkorMizar/job-hunter/internal/util"
 	"github.com/aws/smithy-go/time"
+	"go.uber.org/zap"
 )
 
 type UserPostgres struct {
@@ -18,11 +20,11 @@ func (up UserPostgres) ConvertToUser() (user repo.User, err error) {
 	user = up.User
 	user.DateCreated, err = time.ParseDateTime(up.DateCreatedStr)
 	if err != nil {
-		return repo.User{}, fmt.Errorf("during user convertion: invald user %d date %w", user.ID, err)
+		return repo.User{}, fmt.Errorf("during user convertion: invald user %d date, %w", user.ID, err)
 	}
 	user.LastCheck, err = time.ParseDateTime(up.LastCheckStr)
 	if err != nil {
-		return repo.User{}, fmt.Errorf("during user convertion: invald user %d date %w", user.ID, err)
+		return repo.User{}, fmt.Errorf("during user convertion: invald user %d date, %w", user.ID, err)
 	}
 	return
 }
@@ -35,8 +37,13 @@ func (r *Repository) CreateUser(user *repo.User) (err error) {
 	query := "INSERT INTO \"user\" (login, email, password, full_name) values ($1,$2,$3,$4) RETURNING user_id"
 
 	err = r.db.QueryRow(query, user.Login, user.Email, user.Password, user.FullName).Scan(&id)
+	if err == sql.ErrNoRows {
+		return fmt.Errorf("can't insert user")
+	}
+
 	if err != nil {
-		return fmt.Errorf("failed to exec query %s with error: %w", query, err)
+		r.log.Debug("error during insert new user", zap.Error(err))
+		return fmt.Errorf("failed to exec query %s", query)
 	}
 
 	return nil
@@ -50,7 +57,20 @@ func (r *Repository) GetUserWithEamil(email string) (user repo.User, err error) 
 	var postgrUser UserPostgres
 
 	err = r.db.Get(&postgrUser, query, email)
+	if err != nil {
+		r.log.Debug("error during selecting user by email", zap.Error(err))
 
+		err = fmt.Errorf("can't find user")
+		return user, err
+	}
+
+	user, err = postgrUser.ConvertToUser()
+	if err != nil {
+		r.log.Debug("invalid date fields in user", zap.Error(err))
+
+		err = fmt.Errorf("invalid user id db")
+		return user, err
+	}
 	return user, err
 }
 

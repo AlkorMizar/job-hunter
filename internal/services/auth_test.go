@@ -1,12 +1,14 @@
 package services_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
 	"testing"
 	"time"
 
+	"github.com/AlkorMizar/job-hunter/internal/logging"
 	"github.com/AlkorMizar/job-hunter/internal/model/handl"
 	"github.com/AlkorMizar/job-hunter/internal/model/repo"
 	"github.com/AlkorMizar/job-hunter/internal/repository/mock"
@@ -21,6 +23,7 @@ const (
 
 var (
 	signingKey = []byte("testSigningKey")
+	logger     = logging.NewLogger()
 )
 
 func TestParseToken(t *testing.T) {
@@ -120,9 +123,9 @@ func TestParseToken(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			auth := services.NewAuthService(&mock.UserManagment{}, string(signingKey))
+			auth := services.NewAuthService(&mock.UserManagment{}, string(signingKey), logger)
 
-			info, err := auth.ParseToken(test.token())
+			info, err := auth.ParseToken(context.Background(), test.token())
 
 			if !errors.Is(err, test.err) {
 				t.Fatalf("got %v want %v", err, test.err)
@@ -177,9 +180,9 @@ func TestCreateUSer(t *testing.T) {
 
 			auth := services.NewAuthService(&mock.UserManagment{
 				MockCreateUser: test.mockCreateUser,
-			}, string(signingKey))
+			}, string(signingKey), logger)
 
-			err := auth.CreateUser(test.newUser)
+			err := auth.CreateUser(context.Background(), test.newUser)
 
 			if !errors.Is(err, test.err) {
 				t.Fatalf("got %v want %v", err, test.err)
@@ -300,9 +303,9 @@ func TestCreateToken(t *testing.T) {
 			authServ := services.NewAuthService(&mock.UserManagment{
 				MockGetRoles:         test.mockGetRoles,
 				MockGetUserWithEamil: test.mockGetUser,
-			}, string(signingKey))
+			}, string(signingKey), logger)
 
-			tokenStr, err := authServ.CreateToken(test.authInfo)
+			tokenStr, err := authServ.CreateToken(context.Background(), test.authInfo)
 
 			if !errors.Is(err, test.err) {
 				t.Fatalf("got %v want %v", err, test.err)

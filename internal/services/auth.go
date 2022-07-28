@@ -1,10 +1,12 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/AlkorMizar/job-hunter/internal/logging"
 	"github.com/AlkorMizar/job-hunter/internal/model/handl"
 	"github.com/AlkorMizar/job-hunter/internal/model/repo"
 	"github.com/AlkorMizar/job-hunter/internal/util"
@@ -39,16 +41,18 @@ type UserManagment interface {
 type AuthService struct {
 	repo       UserManagment
 	signingKey []byte
+	log        *logging.Logger
 }
 
-func NewAuthService(repo UserManagment, sKey string) *AuthService {
+func NewAuthService(repo UserManagment, sKey string, log *logging.Logger) *AuthService {
 	return &AuthService{
 		repo:       repo,
 		signingKey: []byte(sKey),
+		log:        log,
 	}
 }
 
-func (s *AuthService) CreateUser(newUser *handl.NewUser) (err error) {
+func (s *AuthService) CreateUser(ctx context.Context, newUser *handl.NewUser) (err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("in CreateUser(service) : %w", err)
@@ -77,7 +81,7 @@ func (s *AuthService) CreateUser(newUser *handl.NewUser) (err error) {
 	return s.repo.CreateUser(&user)
 }
 
-func (s *AuthService) CreateToken(authInfo handl.AuthInfo) (token string, err error) {
+func (s *AuthService) CreateToken(ctx context.Context, authInfo handl.AuthInfo) (token string, err error) {
 	defer util.Wrap(&err, "in CreateToken")
 
 	user, err := s.repo.GetUserWithEamil(authInfo.Email)
@@ -115,7 +119,7 @@ func (s *AuthService) CreateToken(authInfo handl.AuthInfo) (token string, err er
 	return token, err
 }
 
-func (s *AuthService) ParseToken(tokenStr string) (info handl.UserInfo, err error) {
+func (s *AuthService) ParseToken(ctx context.Context, tokenStr string) (info handl.UserInfo, err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("in ParseToken : %w", err)

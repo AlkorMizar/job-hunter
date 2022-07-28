@@ -4,22 +4,25 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/AlkorMizar/job-hunter/internal/handler"
+	"github.com/AlkorMizar/job-hunter/internal/logging"
 	"github.com/AlkorMizar/job-hunter/internal/repository/mysql"
 	"github.com/AlkorMizar/job-hunter/internal/repository/postgres"
 	"github.com/AlkorMizar/job-hunter/internal/server"
 	"github.com/AlkorMizar/job-hunter/internal/services"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
 
 func main() {
+	logger := logging.NewLogger()
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
@@ -27,62 +30,76 @@ func main() {
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 		s := <-c
-		log.Printf("Signal %v", s)
+		logger.Info("System recived signal to shutdown", zap.Any("signal", s))
 		cancel()
 	}()
 
 	if err := initConfig(); err != nil {
-		log.Fatalf("error initializing configs: %s", err.Error())
+		logger.Fatal("Error initializing configs", zap.Error(err))
 	}
+
+	logger.Info("Config init", zap.Any("configFile", viper.ConfigFileUsed()))
 
 	if err := godotenv.Load(".env"); err != nil {
-		log.Fatalf("error loading env variables: %s", err.Error())
+		logger.Fatal("Error loading env variables", zap.Error(err))
 	}
 
+	logger.Info(".env load")
+
 	var repo services.Repository
-	flag.Func("db", "server works with mysql/postgres", func(s string) (err error) {
-		repo, err = getRepo(s)
+	flag.Func("db", "server works with mysql/postgres", func(arg string) (err error) {
+		repo, err = getRepo(arg, logger)
+		if err != nil {
+			logger.Error("Couldn't parse db args", zap.Error(err))
+		}
+
 		return err
 	})
 
 	flag.Parse()
 
 	if repo == nil {
-		log.Fatal("Databse for server not set")
+		logger.Fatal("Databse for server not set")
 	}
 
-	auth := services.NewAuthService(repo, os.Getenv("SIGNING_KEY"))
+	auth := services.NewAuthService(repo, os.Getenv("SIGNING_KEY"), logger)
 
-	router := handler.NewHandler(auth)
+	router := handler.NewHandler(logger, auth)
 
 	srv := server.NewServer(viper.GetString("server.host"), viper.GetString("server.port"), router.InitRoutes(), viper.GetInt("server.timeOutSEc"))
 
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		log.Print("Run...")
+		logger.Info("Runing...")
 		if err := srv.Run(); err != nil {
-			log.Fatalf("error ocured during run %s", err.Error())
+			logger.Fatal("Error ocured during run", zap.Error(err))
 			return fmt.Errorf("in main %w", err)
 		}
 		return nil
 	})
 	g.Go(func() error {
-		log.Print("Wait end")
+		logger.Info("Waiting shutdown")
 		<-gCtx.Done()
-		log.Print("Shuting down")
-		err := repo.Close()
-		if err != nil {
-			return fmt.Errorf("in main during shutdown db %w", err)
+		logger.Warn("Shutting down")
+
+		var errAll error
+		errDB := repo.Close()
+		if errDB != nil {
+			logger.Error("Error during shutdown db", zap.Error(errDB))
+			errAll = fmt.Errorf("error in shutting down database ;")
 		}
-		err = srv.Shutdown(context.Background())
-		if err != nil {
-			return fmt.Errorf("in main during shutdown server %w", err)
+
+		errSrv := srv.Shutdown(context.Background())
+		if errSrv != nil {
+			logger.Error("Error during shutdown server", zap.Error(errSrv))
+			errAll = fmt.Errorf("error in shutting down server %w", errAll)
 		}
-		return nil
+
+		return errAll
 	})
 
 	if err := g.Wait(); err != nil {
-		fmt.Printf("exit reason: %s \n", err)
+		logger.Error("Error during shutdown", zap.Error(err))
 	}
 
 }
@@ -94,7 +111,8 @@ func initConfig() error {
 	return viper.ReadInConfig()
 }
 
-func getRepo(dbType string) (repo services.Repository, err error) {
+func getRepo(dbType string, log *logging.Logger) (repo services.Repository, err error) {
+	log.Info("Parsing args for db", zap.String("dbType", dbType))
 
 	if dbType == "mysql" {
 		db, err := mysql.NewMySQLDB(&mysql.Config{
@@ -111,7 +129,7 @@ func getRepo(dbType string) (repo services.Repository, err error) {
 			return nil, fmt.Errorf("failed to initialize mysql db: %w", err)
 		}
 
-		repo = mysql.NewMysqlRepository(db)
+		repo = mysql.NewMysqlRepository(db, log)
 	}
 
 	if dbType == "postgres" {
@@ -128,7 +146,7 @@ func getRepo(dbType string) (repo services.Repository, err error) {
 			return nil, fmt.Errorf("failed to initialize postgres db: %w", err)
 		}
 
-		repo = postgres.NewPostgresRepository(db)
+		repo = postgres.NewPostgresRepository(db, log)
 	}
 
 	return repo, nil
