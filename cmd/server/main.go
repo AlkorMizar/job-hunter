@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	defaultLog := logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel)
+	defaultLog := logging.NewDefaultLogger(logging.ErrorLevel)
 
 	if err := initConfig(); err != nil {
 		defaultLog.Fatal("error during initializaint config", zap.Error(err))
@@ -42,9 +42,9 @@ func main() {
 
 	var log *logging.Logger
 	if os.Getenv("APP_ENV") == "production" {
-		log = logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel)
+		log = logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel, viper.GetString("log.path"))
 	} else {
-		log = logging.NewZapLogger(logging.DebugLeve, logging.DebugLeve)
+		log = logging.NewZapLogger(logging.DebugLeve, logging.DebugLeve, viper.GetString("log.path"))
 	}
 
 	if repo == nil {
@@ -110,7 +110,7 @@ func main() {
 }
 
 func initConfig() error {
-	log := logging.NewZapLogger(logging.ErrorLevel, logging.ErrorLevel)
+	log := logging.NewDefaultLogger(logging.ErrorLevel)
 
 	viper.AddConfigPath("configs")
 	viper.SetConfigName("config")
@@ -149,6 +149,7 @@ func getRepo(dbType string, log *logging.Logger) (repo services.Repository, err 
 		}
 
 		repo = mysql.NewMysqlRepository(db, log)
+		log.Info("Mysql loaded")
 	}
 
 	if dbType == "postgres" {
@@ -166,6 +167,7 @@ func getRepo(dbType string, log *logging.Logger) (repo services.Repository, err 
 		}
 
 		repo = postgres.NewPostgresRepository(db, log)
+		log.Info("Postgres loaded")
 	}
 
 	return repo, nil

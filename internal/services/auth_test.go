@@ -24,7 +24,7 @@ const (
 
 var (
 	signingKey = []byte("testSigningKey")
-	logger     = logging.NewMockLogger()
+	logger     = logging.NewDefaultLogger(logging.DebugLeve)
 )
 
 func TestParseToken(t *testing.T) {

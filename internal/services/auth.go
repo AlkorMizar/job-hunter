@@ -79,11 +79,15 @@ func (s *AuthService) CreateUser(ctx context.Context, newUser *handl.NewUser) (e
 		Roles:    roles,
 	}
 
+	//verify user roles servise write later
 	return s.repo.CreateUser(&user)
 }
 
+//function that verify new roles for user, default role will be applicant, other roles later will be sent to check by mods and admins
+//func  (s *AuthService) SetRoles(ctx context.Context, user repo.User)(err error)
+
 func (s *AuthService) CreateToken(ctx context.Context, authInfo handl.AuthInfo) (token string, err error) {
-	defer util.Wrap(&err, "in CreateToken")
+	defer util.Wrap(err, "in CreateToken")
 
 	user, err := s.repo.GetUserWithEamil(authInfo.Email)
 	if err != nil {

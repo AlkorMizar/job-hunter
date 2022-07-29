@@ -19,14 +19,13 @@ type correlationIdType int
 
 const (
 	requestIdKey correlationIdType = iota
-	sessionIdKey
 )
 
 type Logger struct {
 	*zap.Logger
 }
 
-func NewMockLogger() (logger *Logger) {
+func NewDefaultLogger(lvl LogLevel) (logger *Logger) {
 	config := zap.NewProductionEncoderConfig()
 
 	config.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -34,7 +33,7 @@ func NewMockLogger() (logger *Logger) {
 	consoleEncoder := zapcore.NewConsoleEncoder(config)
 
 	core := zapcore.NewTee(
-		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), zap.DebugLevel),
+		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), levelToZapTranslate(lvl)),
 	)
 
 	logger = &Logger{zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))}
@@ -42,7 +41,7 @@ func NewMockLogger() (logger *Logger) {
 	return logger
 }
 
-func NewZapLogger(logFileLvl, logConsoleLvl LogLevel) (logger *Logger) {
+func NewZapLogger(logFileLvl, logConsoleLvl LogLevel, logFilePath string) (logger *Logger) {
 	config := zap.NewProductionEncoderConfig()
 
 	config.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -51,7 +50,7 @@ func NewZapLogger(logFileLvl, logConsoleLvl LogLevel) (logger *Logger) {
 
 	consoleEncoder := zapcore.NewConsoleEncoder(config)
 
-	logFile, _ := os.OpenFile("logs/log.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logFile, _ := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 
 	writer := zapcore.AddSync(logFile)
 

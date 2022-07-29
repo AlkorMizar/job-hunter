@@ -8,7 +8,7 @@ import (
 )
 
 func (r *Repository) CreateUser(user *repo.User) (err error) {
-	defer util.Wrap(&err, "in CreateUser")
+	defer util.Wrap(err, "in CreateUser")
 
 	query := "INSERT INTO user (login, email, password, full_name) values (:login,:email,:password,:full_name)"
 	res, err := r.db.NamedExec(query, user)
@@ -31,7 +31,7 @@ func (r *Repository) CreateUser(user *repo.User) (err error) {
 }
 
 func (r *Repository) GetUserWithEamil(email string) (user repo.User, err error) {
-	defer util.Wrap(&err, "in GetUserWithEamil")
+	defer util.Wrap(err, "in GetUserWithEamil")
 
 	query := "SELECT * FROM user WHERE email=?"
 
@@ -41,7 +41,7 @@ func (r *Repository) GetUserWithEamil(email string) (user repo.User, err error) 
 }
 
 func (r *Repository) GetRoles(user *repo.User) (roles map[string]struct{}, err error) {
-	defer util.Wrap(&err, "in GetRoles")
+	defer util.Wrap(err, "in GetRoles")
 
 	roles = make(map[string]struct{})
 	rolesArr := []repo.Role{}
@@ -60,7 +60,7 @@ func (r *Repository) GetRoles(user *repo.User) (roles map[string]struct{}, err e
 }
 
 func (r *Repository) SetRoles(user *repo.User) (err error) {
-	defer util.Wrap(&err, "in SetRoles")
+	defer util.Wrap(err, "in SetRoles")
 
 	tx, err := r.db.Begin()
 	if err != nil {

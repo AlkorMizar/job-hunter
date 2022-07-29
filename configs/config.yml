@@ -3,17 +3,20 @@ server:
   host: "localhost"
   timeOutSEc: 10
 
+log:
+  path: "logs/log.json"
+
 mysql:
-    username: "root"
-    host: "localhost"
-    port: "3306"
-    dbname: "jobhunter"
-    protocol: "tcp"
-    options: "parseTime=true"
+  username: "root"
+  host: "localhost"
+  port: "3306"
+  dbname: "jobhunter"
+  protocol: "tcp"
+  options: "parseTime=true"
 
 postgres:
-    username: "postgres"
-    host: "localhost"
-    port: "5436"
-    dbname: "postgres"
-    options: ""
+  username: "postgres"
+  host: "localhost"
+  port: "5436"
+  dbname: "postgres"
+  options: ""

@@ -25,7 +25,7 @@ func TestCreateUserCorrect(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	user := repo.User{
 		ID:       1,
@@ -58,7 +58,7 @@ func TestCreateUserDuplicated(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	user := repo.User{
 		ID:       1,
@@ -91,7 +91,7 @@ func TestGetUserByEmailCorrect(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	email := "eamil@d.com"
 
@@ -132,7 +132,7 @@ func TestGetUserByEmailDontExist(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	email := "eamil@d.com"
 
@@ -164,7 +164,7 @@ func TestGetRolesCorrect(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	user := repo.User{
 		ID:    1,
@@ -198,7 +198,7 @@ func TestGetRolesWithError(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	user := repo.User{
 		ID:    1,
@@ -231,7 +231,7 @@ func TestGetRolesNoRoles(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	user := repo.User{
 		ID:    1,
@@ -264,7 +264,7 @@ func TestSetRolesCorrect(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	user := repo.User{
 		ID:    1,
@@ -299,7 +299,7 @@ func TestSetRolesDeleteErr(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	user := repo.User{
 		ID:    1,
@@ -333,7 +333,7 @@ func TestSetRolesInsertErr(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewMockLogger())
+	rep := postgres.NewPostgresRepository(sqlxDB, logging.NewDefaultLogger(logging.DebugLeve))
 
 	user := repo.User{
 		ID:    1,

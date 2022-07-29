@@ -30,7 +30,7 @@ func (up UserPostgres) ConvertToUser() (user repo.User, err error) {
 }
 
 func (r *Repository) CreateUser(user *repo.User) (err error) {
-	defer util.Wrap(&err, "in CreateUser")
+	defer util.Wrap(err, "in CreateUser")
 
 	var id int
 
@@ -50,7 +50,7 @@ func (r *Repository) CreateUser(user *repo.User) (err error) {
 }
 
 func (r *Repository) GetUserWithEamil(email string) (user repo.User, err error) {
-	defer util.Wrap(&err, "in GetUserWithEamil")
+	defer util.Wrap(err, "in GetUserWithEamil")
 
 	query := "SELECT * FROM \"user\" WHERE email=$1"
 
@@ -75,7 +75,7 @@ func (r *Repository) GetUserWithEamil(email string) (user repo.User, err error) 
 }
 
 func (r *Repository) GetRoles(user *repo.User) (roles map[string]struct{}, err error) {
-	defer util.Wrap(&err, "in GetRoles")
+	defer util.Wrap(err, "in GetRoles")
 
 	roles = make(map[string]struct{})
 
@@ -97,7 +97,7 @@ func (r *Repository) GetRoles(user *repo.User) (roles map[string]struct{}, err e
 }
 
 func (r *Repository) SetRoles(user *repo.User) (err error) {
-	defer util.Wrap(&err, "in SetRoles")
+	defer util.Wrap(err, "in SetRoles")
 
 	tx, err := r.db.Begin()
 
