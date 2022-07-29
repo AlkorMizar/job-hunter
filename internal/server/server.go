@@ -47,5 +47,6 @@ func (s *Server) Run() error {
 func (s *Server) Shutdown(ctx context.Context) error {
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(s.timeOutSec)*time.Second)
 	defer cancel()
+
 	return s.httpServer.Shutdown(ctxTimeout)
 }

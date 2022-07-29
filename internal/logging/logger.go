@@ -15,15 +15,17 @@ const (
 	DebugLeve
 )
 
-type correlationIdType int
+type correlationIDType int
 
 const (
-	requestIdKey correlationIdType = iota
+	requestIDKey correlationIDType = iota
 )
 
 type Logger struct {
 	*zap.Logger
 }
+
+const filePerm = 0o644
 
 func NewDefaultLogger(lvl LogLevel) (logger *Logger) {
 	config := zap.NewProductionEncoderConfig()
@@ -50,7 +52,7 @@ func NewZapLogger(logFileLvl, logConsoleLvl LogLevel, logFilePath string) (logge
 
 	consoleEncoder := zapcore.NewConsoleEncoder(config)
 
-	logFile, _ := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	logFile, _ := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, filePerm)
 
 	writer := zapcore.AddSync(logFile)
 
@@ -75,18 +77,18 @@ func levelToZapTranslate(lvl LogLevel) zapcore.Level {
 	}
 }
 
-// WithRqId returns a context which knows its request ID
-func WithRqId(ctx context.Context, rqId string) context.Context {
-	return context.WithValue(ctx, requestIdKey, rqId)
+// WithRqID returns a context which knows its request ID
+func WithRqID(ctx context.Context, rqID string) context.Context {
+	return context.WithValue(ctx, requestIDKey, rqID)
 }
 
 // Logger returns a zap logger with as much context as possible
 func (lg *Logger) WithCtx(ctx context.Context) *Logger {
 	if ctx != nil {
-		if ctxRqId, ok := ctx.Value(requestIdKey).(string); ok {
-
-			return &Logger{lg.With(zap.String("rqId", ctxRqId))}
+		if ctxRqID, ok := ctx.Value(requestIDKey).(string); ok {
+			return &Logger{lg.With(zap.String("rqID", ctxRqID))}
 		}
 	}
+
 	return lg
 }

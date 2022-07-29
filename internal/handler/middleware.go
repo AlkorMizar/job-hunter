@@ -67,7 +67,7 @@ func (h *Handler) authentication(next http.Handler) http.Handler {
 
 func (h *Handler) logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := logging.WithRqId(r.Context(), uuid.NewString())
+		ctx := logging.WithRqID(r.Context(), uuid.NewString())
 		start := time.Now()
 		defer func() {
 			h.log.WithCtx(ctx).Debug("Request finished in time",

@@ -10,11 +10,15 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
+const migrationStep = 2
+
 func main() {
 	db, err := sql.Open("mysql", "root:root@tcp(localhost:3308)/sys?")
 	fmt.Print(err)
+
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	fmt.Print(err)
+
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://migrations/mysql",
 		"mysql",
@@ -22,6 +26,6 @@ func main() {
 	)
 	fmt.Print(err)
 
-	err = m.Steps(2)
+	err = m.Steps(migrationStep)
 	fmt.Print(err)
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/AlkorMizar/job-hunter/internal/logging"
 	"github.com/AlkorMizar/job-hunter/internal/model/handl"
 	"github.com/AlkorMizar/job-hunter/internal/model/repo"
-	"github.com/AlkorMizar/job-hunter/internal/util"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -44,9 +43,9 @@ type AuthService struct {
 	bcryptCost int
 }
 
-func NewAuthService(repo UserManagment, sKey string, bcryptCost int, log *logging.Logger) *AuthService {
+func NewAuthService(repository UserManagment, sKey string, bcryptCost int, log *logging.Logger) *AuthService {
 	return &AuthService{
-		repo:       repo,
+		repo:       repository,
 		signingKey: []byte(sKey),
 		log:        log,
 		bcryptCost: bcryptCost,
@@ -54,18 +53,12 @@ func NewAuthService(repo UserManagment, sKey string, bcryptCost int, log *loggin
 }
 
 func (s *AuthService) CreateUser(ctx context.Context, newUser *handl.NewUser) (err error) {
-	defer func() {
-		if err != nil {
-			err = fmt.Errorf("in CreateUser(service) : %w", err)
-		}
-	}()
-
 	pwd, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), s.bcryptCost)
 	if err != nil {
 		return fmt.Errorf("failed generate hash with error: %w", err)
 	}
 
-	//TODO: maybe move to func
+	// TODO: maybe move to func
 	roles := make(map[string]struct{})
 	for _, v := range newUser.Roles {
 		roles[v] = struct{}{}
@@ -79,22 +72,20 @@ func (s *AuthService) CreateUser(ctx context.Context, newUser *handl.NewUser) (e
 		Roles:    roles,
 	}
 
-	//verify user roles servise write later
+	// verify user roles servise write later
 	return s.repo.CreateUser(&user)
 }
 
-//function that verify new roles for user, default role will be applicant, other roles later will be sent to check by mods and admins
-//func  (s *AuthService) SetRoles(ctx context.Context, user repo.User)(err error)
+// function that verify new roles for user, default role will be applicant, other roles later will be sent to check by mods and admins
+// func  (s *AuthService) SetRoles(ctx context.Context, user repo.User)(err error)
 
 func (s *AuthService) CreateToken(ctx context.Context, authInfo handl.AuthInfo) (token string, err error) {
-	defer util.Wrap(err, "in CreateToken")
-
 	user, err := s.repo.GetUserWithEamil(authInfo.Email)
 	if err != nil {
 		return "", err
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(authInfo.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword(user.Password, []byte(authInfo.Password)); err != nil {
 		return "", fmt.Errorf("failed compare passwords: %w", err)
 	}
 
@@ -121,6 +112,7 @@ func (s *AuthService) CreateToken(ctx context.Context, authInfo handl.AuthInfo) 
 	if err != nil {
 		return "", fmt.Errorf("failed to sign claims with error: %w", err)
 	}
+
 	return token, err
 }
 
@@ -141,6 +133,7 @@ func (s *AuthService) ParseToken(ctx context.Context, tokenStr string) (info han
 				return handl.UserInfo{}, ErrExpiredToken
 			}
 		}
+
 		return handl.UserInfo{}, ErrTokenInvalid
 	}
 
@@ -150,5 +143,6 @@ func (s *AuthService) ParseToken(ctx context.Context, tokenStr string) (info han
 	}
 
 	info = claims.UserInfo
+
 	return info, nil
 }

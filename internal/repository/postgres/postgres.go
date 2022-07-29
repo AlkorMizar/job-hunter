@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/stdlib" //nolint:blank-imports // only for sqlx
 	"github.com/jmoiron/sqlx"
 )
 
@@ -24,7 +24,7 @@ type Config struct {
 }
 
 func NewPodtgresDB(cfg *Config) (*sqlx.DB, error) {
-	//postgresql://[user[:password]@][netloc][:port][/dbname]
+	// postgres URL scheme  postgresql://[user[:password]@][netloc][:port][/dbname]
 	db, err := sqlx.Connect("pgx", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s",
 		cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.Options))
 	if err != nil {

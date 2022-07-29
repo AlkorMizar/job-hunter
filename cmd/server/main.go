@@ -29,6 +29,7 @@ func main() {
 	}
 
 	var repo services.Repository
+
 	flag.Func("db", "server works with mysql/postgres", func(arg string) (err error) {
 		repo, err = getRepo(arg, defaultLog)
 		if err != nil {
@@ -58,7 +59,7 @@ func main() {
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 		s := <-c
-		log.Info("System recived signal to shutdown", zap.Any("signal", s))
+		log.Info("System received signal to shutdown", zap.Any("signal", s))
 		cancel()
 	}()
 
@@ -76,7 +77,7 @@ func main() {
 
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		log.Info("Runing...")
+		log.Info("Running...")
 		if err := srv.Run(); err != nil {
 			log.Fatal("Error ocured during run", zap.Error(err))
 			return fmt.Errorf("in main %w", err)
@@ -106,7 +107,6 @@ func main() {
 	if err := g.Wait(); err != nil {
 		log.Error("Error during shutdown", zap.Error(err))
 	}
-
 }
 
 func initConfig() error {

@@ -47,7 +47,6 @@ func TestCreateUserCorrect(t *testing.T) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
-
 }
 
 func TestCreateUserDuplicated(t *testing.T) {
@@ -80,7 +79,6 @@ func TestCreateUserDuplicated(t *testing.T) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
-
 }
 
 func TestGetUserByEmailCorrect(t *testing.T) {

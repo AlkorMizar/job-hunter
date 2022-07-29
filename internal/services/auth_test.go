@@ -28,7 +28,6 @@ var (
 )
 
 func TestParseToken(t *testing.T) {
-
 	validUserInf := handl.UserInfo{
 		ID:    1,
 		Roles: map[string]struct{}{"role": {}},
@@ -123,7 +122,6 @@ func TestParseToken(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			auth := services.NewAuthService(&mock.UserManagment{}, string(signingKey), bcryptCost, logger)
 
 			info, err := auth.ParseToken(context.Background(), test.token())
@@ -178,7 +176,6 @@ func TestCreateUSer(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			auth := services.NewAuthService(&mock.UserManagment{
 				MockCreateUser: test.mockCreateUser,
 			}, string(signingKey), bcryptCost, logger)
@@ -300,7 +297,6 @@ func TestCreateToken(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			authServ := services.NewAuthService(&mock.UserManagment{
 				MockGetRoles:         test.mockGetRoles,
 				MockGetUserWithEamil: test.mockGetUser,

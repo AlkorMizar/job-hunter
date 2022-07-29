@@ -36,6 +36,7 @@ func (h *Handler) InitRoutes() *mux.Router {
 
 	sh := http.StripPrefix("/swaggerui/", http.FileServer(http.Dir("./swaggerui/")))
 	unauth.PathPrefix("/swaggerui/").Handler(sh)
+
 	api := http.StripPrefix("/api/", http.FileServer(http.Dir("./api/")))
 	unauth.PathPrefix("/api/").Handler(api)
 	unauth.HandleFunc("/reg", h.register).Methods(http.MethodPost)
@@ -44,5 +45,6 @@ func (h *Handler) InitRoutes() *mux.Router {
 	auth.Use(h.authentication)
 
 	h.log.Info("Routes inited")
+
 	return r
 }

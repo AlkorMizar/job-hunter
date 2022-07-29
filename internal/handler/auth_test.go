@@ -91,7 +91,6 @@ func TestRegisterHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			body, err := json.Marshal(test.newUser)
 
 			if err != nil {
@@ -166,7 +165,6 @@ func TestAuthHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			handler := Handler{
 				auth: &mock.AuthServiceMock{
 					MockCreateToken: test.mock,
