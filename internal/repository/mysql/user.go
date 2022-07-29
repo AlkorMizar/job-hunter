@@ -68,9 +68,10 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 
 	defer func() {
 		if err != nil {
-			err = tx.Rollback()
+			errRoll := tx.Rollback()
 			if err != nil {
-				r.log.Debug("during transaction rollback", zap.String("func", "SetRoles"), zap.Error(err))
+				r.log.Debug("during transaction rollback", zap.String("func", "SetRoles"), zap.Error(errRoll))
+
 				err = fmt.Errorf("in SerRoles error during rollback")
 			}
 

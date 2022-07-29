@@ -12,7 +12,8 @@ type Repository struct {
 
 func NewMysqlRepository(db *sqlx.DB, log *logging.Logger) *Repository {
 	return &Repository{
-		db: db,
+		db:  db,
+		log: log,
 	}
 }
 

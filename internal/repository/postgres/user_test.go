@@ -290,7 +290,7 @@ func TestSetRolesCorrect(t *testing.T) {
 	}
 }
 
-func TestSetRolesDeleteErr(t *testing.T) {
+func TestSetRolesInsertErr(t *testing.T) {
 	mockDB, mock, _ := sqlmock.New()
 
 	defer mockDB.Close()
@@ -324,7 +324,7 @@ func TestSetRolesDeleteErr(t *testing.T) {
 	}
 }
 
-func TestSetRolesInsertErr(t *testing.T) {
+func TestSetRolesDeleteErr(t *testing.T) {
 	mockDB, mock, _ := sqlmock.New()
 
 	defer mockDB.Close()
