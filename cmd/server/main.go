@@ -83,24 +83,23 @@ func main() {
 		}
 		return nil
 	})
+
 	g.Go(func() error {
 		log.Info("Waiting shutdown")
 		<-gCtx.Done()
 		log.Warn("Shutting down")
 
 		var errAll error
-		errDB := repo.Close()
-		if errDB != nil {
-			log.Error("Error during shutdown db", zap.Error(errDB))
-			errAll = fmt.Errorf("error in shutting down database ;")
+
+		if err := srv.Shutdown(context.Background()); err != nil {
+			log.Error("Error during shutdown server", zap.Error(err))
+			errAll = fmt.Errorf("error in shutting down server;")
 		}
 
-		errSrv := srv.Shutdown(context.Background())
-		if errSrv != nil {
-			log.Error("Error during shutdown server", zap.Error(errSrv))
-			errAll = fmt.Errorf("error in shutting down server %w", errAll)
+		if err := repo.Close(); err != nil {
+			log.Error("Error during shutdown db", zap.Error(err))
+			errAll = fmt.Errorf("error in shutting down database %w", errAll)
 		}
-
 		return errAll
 	})
 

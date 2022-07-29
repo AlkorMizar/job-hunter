@@ -27,8 +27,19 @@ type Logger struct {
 }
 
 func NewMockLogger() (logger *Logger) {
-	log, _ := zap.NewProduction()
-	return &Logger{log}
+	config := zap.NewProductionEncoderConfig()
+
+	config.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	consoleEncoder := zapcore.NewConsoleEncoder(config)
+
+	core := zapcore.NewTee(
+		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), zap.DebugLevel),
+	)
+
+	logger = &Logger{zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))}
+
+	return logger
 }
 
 func NewZapLogger(logFileLvl, logConsoleLvl LogLevel) (logger *Logger) {
@@ -45,7 +56,7 @@ func NewZapLogger(logFileLvl, logConsoleLvl LogLevel) (logger *Logger) {
 	writer := zapcore.AddSync(logFile)
 
 	core := zapcore.NewTee(
-		zapcore.NewCore(fileEncoder, writer, levelToZapTranslate(logConsoleLvl)),
+		zapcore.NewCore(fileEncoder, writer, levelToZapTranslate(logFileLvl)),
 		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), levelToZapTranslate(logConsoleLvl)),
 	)
 

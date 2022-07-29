@@ -100,9 +100,22 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 	defer util.Wrap(&err, "in SetRoles")
 
 	tx, err := r.db.Begin()
+
 	if err != nil {
 		return fmt.Errorf("failed r.db.Begin with error: %w", err)
 	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+			return
+		}
+
+		e := tx.Commit()
+		if e != nil {
+			err = fmt.Errorf("failed commit transaction with error: %w", e)
+		}
+	}()
 
 	del := `DELETE FROM user_has_role WHERE fk_user_id=?`
 
@@ -124,13 +137,6 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 			return fmt.Errorf("failed to exec query %s with error: %w", insert, err)
 		}
 	}
-
-	defer func() {
-		e := tx.Commit()
-		if e != nil && err == nil {
-			err = fmt.Errorf("failed commit transaction with error: %w", e)
-		}
-	}()
 
 	return nil
 }

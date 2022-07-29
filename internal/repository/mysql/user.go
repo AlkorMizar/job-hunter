@@ -67,6 +67,17 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 		return fmt.Errorf("failed r.db.Begin with error: %w", err)
 	}
 
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+			return
+		}
+
+		e := tx.Commit()
+		if e != nil {
+			err = fmt.Errorf("failed commit transaction with error: %w", e)
+		}
+	}()
 	_, err = tx.Exec(`DELETE FROM user_has_role WHERE fk_user_id=?`, user.ID)
 	if err != nil {
 		return fmt.Errorf("failed exec DELETE query with error: %w", err)
@@ -91,13 +102,6 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 			return fmt.Errorf("no data were inserted")
 		}
 	}
-
-	defer func() {
-		e := tx.Commit()
-		if e != nil && err == nil {
-			err = fmt.Errorf("failed commit with error: %w", e)
-		}
-	}()
 
 	return nil
 }
