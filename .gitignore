@@ -15,3 +15,8 @@
 # vendor/
 
 .env
+.vscode
+Makefile
+
+#logs folder in root 
+logs

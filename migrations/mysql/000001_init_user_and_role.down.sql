@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS `user_has_role`;
+DROP TABLE IF EXISTS `role`;
+DROP TABLE IF EXISTS `user`;
+
+DROP DATABASE jh;
