@@ -71,7 +71,9 @@ func main() {
 
 	auth := services.NewAuthService(repo, os.Getenv("SIGNING_KEY"), bcryptCost, log)
 
-	router := handler.NewHandler(log, auth)
+	profile := services.NewUserServ(repo, bcryptCost, log)
+
+	router := handler.NewHandler(log, auth, profile)
 
 	srv := server.NewServer(viper.GetString("server.host"), viper.GetString("server.port"), router.InitRoutes(), viper.GetInt("server.timeOutSEc"))
 

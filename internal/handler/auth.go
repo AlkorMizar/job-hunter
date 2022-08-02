@@ -43,8 +43,6 @@ func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("Signing in user")
-
 	token, err := h.auth.CreateToken(r.Context(), authInfo)
 
 	if err != nil {
@@ -53,8 +51,6 @@ func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-
-	log.Info("User successfully signed in")
 
 	renderJSON(w, handl.Token{Token: token}, "Successfully authenticated")
 }

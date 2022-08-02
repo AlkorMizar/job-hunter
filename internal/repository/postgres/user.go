@@ -3,6 +3,8 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/AlkorMizar/job-hunter/internal/model/repo"
 	"github.com/aws/smithy-go/time"
@@ -95,7 +97,7 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 
 	if err != nil {
 		r.log.Debug("In SetRoles can't begin transaction", zap.Error(err))
-		return fmt.Errorf("failed r.db.Begin with error: %w", err)
+		return fmt.Errorf("in SerRoles failed r.db.Begin with error: %w", err)
 	}
 
 	defer func() {
@@ -113,7 +115,7 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 		e := tx.Commit()
 		if e != nil {
 			r.log.Debug("In SetRoles can't commit transaction", zap.Error(err))
-			err = fmt.Errorf("failed commit transaction with error: %w", e)
+			err = fmt.Errorf("in SerRoles failed commit transaction with error: %w", e)
 		}
 	}()
 
@@ -122,7 +124,7 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 	_, err = tx.Exec(del, user.ID)
 	if err != nil {
 		r.log.Debug("in SetRoles error during delete", zap.Error(err))
-		return fmt.Errorf("failed exec DELETE query")
+		return fmt.Errorf("in SerRoles failed exec DELETE query")
 	}
 
 	var id int
@@ -137,8 +139,70 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 		err = row.Scan(&id)
 		if err != nil {
 			r.log.Debug("in SetRoles error during inser", zap.Error(err))
-			return fmt.Errorf("failed exec INSERT query")
+			return fmt.Errorf("in SerRoles failed exec INSERT query")
 		}
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateUser(ID int, updateU *repo.User) (err error) {
+	var setter strings.Builder
+	setter.WriteString("SET ")
+
+	elem := reflect.ValueOf(updateU).Elem()
+	for i := 0; i < elem.NumField(); i++ {
+		dbColName := elem.Type().Field(i).Tag.Get("db")
+		value, ok := elem.Field(i).Interface().(string)
+		if ok && value != "" {
+			setter.WriteString(dbColName + "=\"" + value + "\",")
+		}
+	}
+
+	setCols := setter.String()[0 : setter.Len()-1]
+	if setCols == "SET" {
+		return nil
+	}
+
+	query := "UPDATE \"user\" " + setCols + "WHERE user_id=$1 RETURNING user_id;"
+	var resID int
+	err = r.db.QueryRow(query, ID).Scan(&resID)
+	if err != nil {
+		r.log.Debug("error during update", zap.String("func", "UpdateUser"), zap.Error(err))
+		return fmt.Errorf("in UpdateUser failed exec UPDATE query")
+	}
+
+	return nil
+}
+
+func (r *Repository) GetUserByID(id int) (user *repo.User, err error) {
+	query := "SELECT * FROM \"user\" WHERE user_id=$1"
+
+	var postgrUser UserPostgres
+
+	err = r.db.Get(&postgrUser, query, id)
+	if err != nil {
+		r.log.Debug("error during selecting user by ID", zap.String("func", "GetUserById"), zap.Error(err))
+		return user, fmt.Errorf("in GetUserById can't find user")
+	}
+
+	res, err := postgrUser.ConvertToUser()
+	if err != nil {
+		r.log.Warn("invalid date fields in user", zap.String("func", "GetUserById"), zap.Error(err))
+		return user, fmt.Errorf("in GetUserById invalid user id db")
+	}
+	return &res, err
+}
+
+func (r *Repository) UpdatePassword(id int, pwd []byte) error {
+	query := "UPDATE \"user\" SET password=$1 WHERE user_id=$2 RETURNING user_id;"
+
+	var resID int
+	err := r.db.QueryRow(query, pwd, id).Scan(&resID)
+
+	if err != nil {
+		r.log.Debug("error during update", zap.String("func", "UpdatePassword"), zap.Error(err))
+		return fmt.Errorf("in UpdatePassword failed exec UPDATE query")
 	}
 
 	return nil

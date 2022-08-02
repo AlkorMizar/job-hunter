@@ -2,6 +2,8 @@ package mysql
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/AlkorMizar/job-hunter/internal/model/repo"
 	"go.uber.org/zap"
@@ -36,7 +38,8 @@ func (r *Repository) GetUserWithEamil(email string) (user repo.User, err error) 
 	err = r.db.Get(&user, query, email)
 
 	if err != nil {
-		return user, fmt.Errorf("in GetUserWithEmail can't get user with error %w", err)
+		r.log.Debug("Error during select", zap.String("func", "mysql/GetUserWithEamil"), zap.Error(err))
+		return user, fmt.Errorf("in GetUserWithEmail can't get user")
 	}
 
 	return user, err
@@ -111,6 +114,100 @@ func (r *Repository) SetRoles(user *repo.User) (err error) {
 		if num != 1 {
 			return fmt.Errorf("no data were inserted")
 		}
+	}
+
+	return nil
+}
+
+func (r *Repository) GetUserByID(id int) (user *repo.User, err error) {
+	user = &repo.User{}
+
+	query := "SELECT * FROM user WHERE user_id=?"
+
+	err = r.db.Get(user, query, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	user.Roles, err = r.GetRoles(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, err
+}
+
+func (r *Repository) UpdateUser(id int, updateU *repo.User) (err error) {
+	var setter strings.Builder
+	setter.WriteString("SET ")
+
+	elem := reflect.ValueOf(updateU).Elem()
+	for i := 0; i < elem.NumField(); i++ {
+		dbColName := elem.Type().Field(i).Tag.Get("db")
+		value, ok := elem.Field(i).Interface().(string)
+		if ok && value != "" {
+			setter.WriteString(dbColName + "=\"" + value + "\",")
+		}
+	}
+
+	setCols := setter.String()[0 : setter.Len()-1]
+	if setCols == "SET" {
+		return nil
+	}
+
+	query := "UPDATE user " + setCols + "WHERE user_id=?"
+	res, err := r.db.Exec(query, id)
+
+	if err != nil {
+		return err
+	}
+
+	num, err := res.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if num != 1 {
+		return fmt.Errorf("couldn't insert")
+	}
+
+	return nil
+}
+
+func (r *Repository) GetUserById(id int) (*repo.User, error) {
+	var user repo.User
+
+	query := "SELECT * FROM user WHERE user_id=?"
+
+	err := r.db.Get(&user, query, id)
+
+	if err != nil {
+		r.log.Debug("Error during select", zap.String("func", "mysql/GetUserById"), zap.Error(err))
+		return nil, fmt.Errorf("in GetUserById can't get user")
+	}
+
+	return &user, err
+}
+
+func (r *Repository) UpdatePassword(id int, pwd []byte) error {
+	query := "UPDATE user SET password=? WHERE user_id=?"
+
+	res, err := r.db.Exec(query, pwd, id)
+
+	if err != nil {
+		return err
+	}
+
+	num, err := res.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if num != 1 {
+		return fmt.Errorf("couldn't insert")
 	}
 
 	return nil

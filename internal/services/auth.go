@@ -29,13 +29,6 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-type UserManagment interface {
-	CreateUser(user *repo.User) error
-	GetUserWithEamil(email string) (repo.User, error)
-	GetRoles(user *repo.User) (map[string]struct{}, error)
-	SetRoles(user *repo.User) error
-}
-
 type AuthService struct {
 	repo       UserManagment
 	signingKey []byte

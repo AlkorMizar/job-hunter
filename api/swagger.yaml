@@ -45,7 +45,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/model.JSONResult'
-      x-codegen-request-body-name: authInfo
   /reg:
     post:
       tags:
@@ -78,7 +77,143 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/model.JSONResult'
-      x-codegen-request-body-name: newUser
+  /user:
+    get:
+      tags:
+      - profile
+      summary: User profile 
+      description: registred user gets his user info
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Message and token
+          content:
+            application/json:
+              schema:
+                allOf: # Combines the main `Pet` schema with `Cat`-specific properties 
+                  - $ref: '#/components/schemas/model.JSONResult'
+                  - type: object
+                    # all other properties specific to a `Cat`
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/model.User'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        403:
+          description: Forbiden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        400:
+          description: Bad request(impssible)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+    put:
+      tags:
+      - profile
+      summary: Update user info 
+      description: update login/full name/email
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: What to change
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.UpdateInfo'
+        required: true  
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        403:
+          description: Forbiden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+  /user/password:
+    put:
+      tags:
+      - profile
+      summary: Update user info 
+      description: update login/full name/email
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: What to change
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.Passwords'
+        required: true  
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        403:
+          description: Forbiden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.JSONResult'
+  
 components:
   schemas:
     model.AuthInfo:
@@ -104,18 +239,12 @@ components:
           type: string
     model.NewUser:
       required:
-      - cPassword
       - email
       - login
       - password
       - roles
       type: object
       properties:
-        cPassword:
-          maxLength: 40
-          minLength: 5
-          type: string
-          default: test1
         email:
           type: string
           default: test@test.com
@@ -136,6 +265,66 @@ components:
       properties:
         token:
           type: string
+    model.User:
+      required:
+      - email
+      - login
+      - fullName
+      - roles
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          default: test@test.com
+        login:
+          maxLength: 40
+          minLength: 3
+          type: string
+          default: test
+        fullName:
+          type: string
+          minLength: 3
+          maxLength: 150
+          default: test
+        roles:
+          type: array
+          items:
+            type: string 
+          default: admin
+    model.UpdateInfo:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          default: test@test.com
+        login:
+          maxLength: 40
+          minLength: 3
+          type: string
+          default: test
+        fullName:
+          type: string
+          minLength: 3
+          maxLength: 150
+          default: test
+    model.Passwords:
+      required:
+      - curPassword
+      - newPassword
+      type: object
+      properties:
+        curPassword:
+          type: string
+          maxLength: 40
+          minLength: 3
+          pattern: '^\S+$'
+        newPassword:
+          type: string
+          maxLength: 40
+          minLength: 3
+          pattern: '^\S+$'
   securitySchemes:
       bearerAuth:            # arbitrary name for the security scheme
         type: http
